@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="de.challenge3.questapp.ExampleUnitTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2025-05-19T10:33:09" hostname="DESKTOP-4NBOP3B" time="0.01">
+<testsuite name="de.challenge3.questapp.ExampleUnitTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2025-05-20T09:43:05" hostname="DESKTOP-4NBOP3B" time="0.01">
   <properties/>
-  <testcase name="addieren_isCorrect" classname="de.challenge3.questapp.ExampleUnitTest" time="0.01"/>
+  <testcase name="addieren_isCorrect" classname="de.challenge3.questapp.ExampleUnitTest" time="0.008"/>
+  <testcase name="addition_isCorrect" classname="de.challenge3.questapp.ExampleUnitTest" time="0.0"/>
   <system-out><![CDATA[3]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

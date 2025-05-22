@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.androidx.legacy.support.v4)
     implementation(libs.androidx.fragment.ktx)
     implementation(libs.maplibre.android.sdk)
+    implementation(libs.maplibre.android.annotation)
     //implementation(libs.commons.compress)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

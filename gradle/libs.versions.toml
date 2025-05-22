@@ -33,6 +33,7 @@ androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation
 androidx-legacy-support-v4 = { group = "androidx.legacy", name = "legacy-support-v4", version.ref = "legacySupportV4" }
 androidx-fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragmentKtx" }
 maplibre-android-sdk = { group = "org.maplibre.gl", name = "android-sdk", version = "11.8.8" }
+maplibre-android-annotation = {group = "org.maplibre.gl", name = "android-plugin-annotation-v9", version = "3.0.2"}
 #commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "commons-compress-v" }
 
 

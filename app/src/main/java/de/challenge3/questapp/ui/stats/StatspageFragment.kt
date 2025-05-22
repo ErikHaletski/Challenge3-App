@@ -10,6 +10,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import de.challenge3.questapp.R
+import androidx.core.view.isGone
 
 class StatspageFragment : Fragment() {
 
@@ -21,6 +22,8 @@ class StatspageFragment : Fragment() {
     private lateinit var mindSubstats: LinearLayout
     private lateinit var heartSubstats: LinearLayout
     private lateinit var spiritSubstats: LinearLayout
+    private lateinit var strengthFoundation: LinearLayout
+    private lateinit var enduranceFoundation: LinearLayout
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,6 +40,8 @@ class StatspageFragment : Fragment() {
         mindSubstats = view.findViewById(R.id.mindSubstats)
         heartSubstats = view.findViewById(R.id.heartSubstats)
         spiritSubstats = view.findViewById(R.id.spiritSubstats)
+        strengthFoundation = view.findViewById(R.id.strengthFoundation)
+        enduranceFoundation = view.findViewById(R.id.enduranceFoundation)
 
         // Main stat buttons
         view.findViewById<Button>(R.id.buttonMight).setOnClickListener {
@@ -59,10 +64,10 @@ class StatspageFragment : Fragment() {
 
         // Substat buttons (optional: replace with your own logic)
         view.findViewById<Button>(R.id.buttonStrength).setOnClickListener {
-            showSubstats("Strength")
+            toggleFoundation("Strength")
         }
         view.findViewById<Button>(R.id.buttonEndurance).setOnClickListener {
-            showSubstats("Endurance")
+            toggleFoundation("Endurance")
         }
         view.findViewById<Button>(R.id.buttonIntelligence).setOnClickListener {
             showSubstats("Intelligence")
@@ -105,6 +110,15 @@ class StatspageFragment : Fragment() {
             "Spirit" -> spiritSubstats.visibility = View.VISIBLE
         }
     }
+
+    private fun toggleFoundation(statName: String) {
+        when (statName) {
+            "Strength" -> if (strengthFoundation.isGone) {strengthFoundation.visibility = View.VISIBLE} else {strengthFoundation.visibility = View.GONE}
+            "Endurance" -> if (enduranceFoundation.isGone) {enduranceFoundation.visibility = View.VISIBLE} else {enduranceFoundation.visibility = View.GONE}
+            else -> null
+        }
+    }
+
 
     private fun showMainStats() {
         detailView.visibility = View.GONE

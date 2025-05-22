@@ -5,7 +5,8 @@
     android:id="@+id/frameLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.stats.StatspageFragment">
+    tools:context=".ui.stats.StatspageFragment"
+    tools:visibility="visible">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -16,19 +17,20 @@
             android:id="@+id/mainContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center_horizontal">
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
 
             <!-- Stats Grid -->
             <GridLayout
                 android:id="@+id/statsGrid"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:columnCount="2"
-                android:rowCount="2"
                 android:layout_gravity="center"
                 android:layout_marginTop="100dp"
-                android:layout_marginBottom="100dp">
+                android:layout_marginBottom="100dp"
+                android:columnCount="2"
+                android:rowCount="2"
+                android:visibility="visible">
 
                 <Button
                     android:id="@+id/buttonMight"
@@ -83,8 +85,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:visibility="gone"
-                    android:paddingStart="24dp">
+                    android:paddingStart="24dp"
+                    android:visibility="gone">
 
                     <Button
                         android:id="@+id/buttonStrength"
@@ -92,11 +94,39 @@
                         android:layout_height="wrap_content"
                         android:text="Strength" />
 
+                    <LinearLayout
+                        android:id="@+id/strengthFoundation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <Button
+                            android:id="@+id/ArmStrength"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:insetLeft="12dp"
+                            android:text="Arm Strength" />
+
+                        <Button
+                            android:id="@+id/LegStrength"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:insetLeft="12dp"
+                            android:text="Leg Strength" />
+                    </LinearLayout>
+
                     <Button
                         android:id="@+id/buttonEndurance"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Endurance" />
+
+                    <LinearLayout
+                        android:id="@+id/enduranceFoundation"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"></LinearLayout>
                 </LinearLayout>
 
 
@@ -105,8 +135,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:visibility="gone"
-                    android:paddingStart="24dp">
+                    android:paddingStart="24dp"
+                    android:visibility="gone">
 
                     <Button
                         android:id="@+id/buttonIntelligence"
@@ -127,8 +157,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:visibility="gone"
-                    android:paddingStart="24dp">
+                    android:paddingStart="24dp"
+                    android:visibility="gone">
 
                     <Button
                         android:id="@+id/buttonWillpower"
@@ -149,8 +179,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:visibility="gone"
-                    android:paddingStart="24dp">
+                    android:paddingStart="24dp"
+                    android:visibility="gone">
 
                     <Button
                         android:id="@+id/buttonCompassion"
@@ -165,9 +195,9 @@
                         android:text="Charisma" />
                 </LinearLayout>
 
-                    <!-- Dynamically add substat TextViews here -->
-                </LinearLayout>
+                <!-- Dynamically add substat TextViews here -->
             </LinearLayout>
+        </LinearLayout>
     </ScrollView>
 
     <!--

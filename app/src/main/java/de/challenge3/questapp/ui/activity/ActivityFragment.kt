@@ -74,9 +74,18 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             mapView = mapView,
             iconId = "quest-marker-icon",
             onQuestClick = { quest, point ->
+                // Show popup
                 questPopupHandler.showPopup(viewModel.getQuestInfoText(quest), point)
+
+                // Center and zoom to marker
+                val cameraPosition = org.maplibre.android.camera.CameraPosition.Builder()
+                    .target(org.maplibre.android.geometry.LatLng(quest.lat, quest.lng))
+                    .zoom(10.5)
+                    .build()
+                mapLibreMap.animateCamera(org.maplibre.android.camera.CameraUpdateFactory.newCameraPosition(cameraPosition))
             }
         )
+
 
         mapManager = MapManager(
             fragment = this,

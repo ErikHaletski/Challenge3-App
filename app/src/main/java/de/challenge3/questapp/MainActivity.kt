@@ -8,14 +8,29 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import de.challenge3.questapp.databinding.ActivityMainBinding
+import de.challenge3.questapp.Mathe
+import kotlin.math.exp
+import kotlin.math.round
 
 class MainActivity : AppCompatActivity() {
+    var expCeiling : Int = 100
+    fun raiseExpCeiling() {
+        expCeiling = expCeiling + round(expCeiling * 0.1).toInt()
+    }
+    fun loopExp() {
+        var x : Int = 0
+        while (x < 100) {
+            raiseExpCeiling()
+            println(expCeiling)
+            x = x + 1
+        }
+    }
 
     private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        loopExp()
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 

@@ -79,18 +79,95 @@
                     android:textStyle="bold" />
 
                 <LinearLayout
-                    android:id="@+id/substatsContainer"
+                    android:id="@+id/mightSubstats"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
                     android:orientation="vertical"
+                    android:visibility="gone"
                     android:paddingStart="24dp">
+
+                    <Button
+                        android:id="@+id/buttonStrength"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Strength" />
+
+                    <Button
+                        android:id="@+id/buttonEndurance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Endurance" />
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:id="@+id/mindSubstats"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    android:paddingStart="24dp">
+
+                    <Button
+                        android:id="@+id/buttonIntelligence"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Intelligence" />
+
+                    <Button
+                        android:id="@+id/buttonWisdom"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Wisdom" />
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:id="@+id/spiritSubstats"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    android:paddingStart="24dp">
+
+                    <Button
+                        android:id="@+id/buttonWillpower"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Willpower" />
+
+                    <Button
+                        android:id="@+id/buttonResilience"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Resilience" />
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:id="@+id/heartSubstats"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    android:paddingStart="24dp">
+
+                    <Button
+                        android:id="@+id/buttonCompassion"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Compassion" />
+
+                    <Button
+                        android:id="@+id/buttonCharisma"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Charisma" />
+                </LinearLayout>
 
                     <!-- Dynamically add substat TextViews here -->
                 </LinearLayout>
             </LinearLayout>
-
-        </LinearLayout>
     </ScrollView>
 
     <!--

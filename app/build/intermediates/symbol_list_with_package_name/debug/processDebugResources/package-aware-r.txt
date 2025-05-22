@@ -3215,7 +3215,12 @@ id bounce
 id bounceBoth
 id bounceEnd
 id bounceStart
+id buttonBack
+id buttonHeart
+id buttonMight
+id buttonMind
 id buttonPanel
+id buttonSpirit
 id cache_measures
 id callMeasure
 id cancel_action
@@ -3267,6 +3272,7 @@ id design_menu_item_action_area
 id design_menu_item_action_area_stub
 id design_menu_item_text
 id design_navigation_view
+id detailView
 id dialog_button
 id dimensions
 id direct
@@ -3362,6 +3368,7 @@ id list_item
 id locale
 id ltr
 id m3_side_sheet
+id mainContainer
 id marquee
 id masked
 id match_constraint
@@ -3557,11 +3564,13 @@ id startToEnd
 id startVertical
 id staticLayout
 id staticPostLayout
+id statsGrid
 id status_bar_latest_event_content
 id stop
 id stretch
 id submenuarrow
 id submit_area
+id substatsContainer
 id supportScrollUp
 id tabMode
 id tag_accessibility_actions
@@ -3580,6 +3589,7 @@ id tag_window_insets_animation_callback
 id text
 id text2
 id textEnd
+id textMainStat
 id textSpacerNoButtons
 id textSpacerNoTitle
 id textStart
@@ -3591,7 +3601,6 @@ id text_input_end_icon
 id text_input_error_icon
 id text_input_start_icon
 id text_notifications
-id text_statspage
 id textinput_counter
 id textinput_error
 id textinput_helper_text

@@ -4,6 +4,9 @@ package de.challenge3.questapp.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.GridLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,16 +23,56 @@ public final class FragmentStatspageBinding implements ViewBinding {
   private final ConstraintLayout rootView;
 
   @NonNull
+  public final Button buttonBack;
+
+  @NonNull
+  public final Button buttonHeart;
+
+  @NonNull
+  public final Button buttonMight;
+
+  @NonNull
+  public final Button buttonMind;
+
+  @NonNull
+  public final Button buttonSpirit;
+
+  @NonNull
+  public final LinearLayout detailView;
+
+  @NonNull
   public final ConstraintLayout frameLayout;
 
   @NonNull
-  public final TextView textStatspage;
+  public final LinearLayout mainContainer;
 
-  private FragmentStatspageBinding(@NonNull ConstraintLayout rootView,
-      @NonNull ConstraintLayout frameLayout, @NonNull TextView textStatspage) {
+  @NonNull
+  public final GridLayout statsGrid;
+
+  @NonNull
+  public final LinearLayout substatsContainer;
+
+  @NonNull
+  public final TextView textMainStat;
+
+  private FragmentStatspageBinding(@NonNull ConstraintLayout rootView, @NonNull Button buttonBack,
+      @NonNull Button buttonHeart, @NonNull Button buttonMight, @NonNull Button buttonMind,
+      @NonNull Button buttonSpirit, @NonNull LinearLayout detailView,
+      @NonNull ConstraintLayout frameLayout, @NonNull LinearLayout mainContainer,
+      @NonNull GridLayout statsGrid, @NonNull LinearLayout substatsContainer,
+      @NonNull TextView textMainStat) {
     this.rootView = rootView;
+    this.buttonBack = buttonBack;
+    this.buttonHeart = buttonHeart;
+    this.buttonMight = buttonMight;
+    this.buttonMind = buttonMind;
+    this.buttonSpirit = buttonSpirit;
+    this.detailView = detailView;
     this.frameLayout = frameLayout;
-    this.textStatspage = textStatspage;
+    this.mainContainer = mainContainer;
+    this.statsGrid = statsGrid;
+    this.substatsContainer = substatsContainer;
+    this.textMainStat = textMainStat;
   }
 
   @Override
@@ -59,15 +102,71 @@ public final class FragmentStatspageBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
-      ConstraintLayout frameLayout = (ConstraintLayout) rootView;
-
-      id = R.id.text_statspage;
-      TextView textStatspage = ViewBindings.findChildViewById(rootView, id);
-      if (textStatspage == null) {
+      id = R.id.buttonBack;
+      Button buttonBack = ViewBindings.findChildViewById(rootView, id);
+      if (buttonBack == null) {
         break missingId;
       }
 
-      return new FragmentStatspageBinding((ConstraintLayout) rootView, frameLayout, textStatspage);
+      id = R.id.buttonHeart;
+      Button buttonHeart = ViewBindings.findChildViewById(rootView, id);
+      if (buttonHeart == null) {
+        break missingId;
+      }
+
+      id = R.id.buttonMight;
+      Button buttonMight = ViewBindings.findChildViewById(rootView, id);
+      if (buttonMight == null) {
+        break missingId;
+      }
+
+      id = R.id.buttonMind;
+      Button buttonMind = ViewBindings.findChildViewById(rootView, id);
+      if (buttonMind == null) {
+        break missingId;
+      }
+
+      id = R.id.buttonSpirit;
+      Button buttonSpirit = ViewBindings.findChildViewById(rootView, id);
+      if (buttonSpirit == null) {
+        break missingId;
+      }
+
+      id = R.id.detailView;
+      LinearLayout detailView = ViewBindings.findChildViewById(rootView, id);
+      if (detailView == null) {
+        break missingId;
+      }
+
+      ConstraintLayout frameLayout = (ConstraintLayout) rootView;
+
+      id = R.id.mainContainer;
+      LinearLayout mainContainer = ViewBindings.findChildViewById(rootView, id);
+      if (mainContainer == null) {
+        break missingId;
+      }
+
+      id = R.id.statsGrid;
+      GridLayout statsGrid = ViewBindings.findChildViewById(rootView, id);
+      if (statsGrid == null) {
+        break missingId;
+      }
+
+      id = R.id.substatsContainer;
+      LinearLayout substatsContainer = ViewBindings.findChildViewById(rootView, id);
+      if (substatsContainer == null) {
+        break missingId;
+      }
+
+      id = R.id.textMainStat;
+      TextView textMainStat = ViewBindings.findChildViewById(rootView, id);
+      if (textMainStat == null) {
+        break missingId;
+      }
+
+      return new FragmentStatspageBinding((ConstraintLayout) rootView, buttonBack, buttonHeart,
+          buttonMight, buttonMind, buttonSpirit, detailView, frameLayout, mainContainer, statsGrid,
+          substatsContainer, textMainStat);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

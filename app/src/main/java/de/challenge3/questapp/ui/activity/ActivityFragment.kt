@@ -12,6 +12,8 @@ import de.challenge3.questapp.databinding.FragmentActivityBinding
 import de.challenge3.questapp.logik.map.MapManager
 import de.challenge3.questapp.logik.map.QuestMarkerManager
 import de.challenge3.questapp.logik.map.QuestPopUpHandler
+import org.maplibre.android.camera.CameraPosition
+import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.OnMapReadyCallback
@@ -58,12 +60,15 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         mapView.getMapAsync(this)
 
         questPopupHandler = QuestPopUpHandler(binding)
+        setupClickListeners()
+
+        return binding.root
+    }
+
+    private fun setupClickListeners() {
         binding.btnCenterLocation.setOnClickListener {
             mapManager?.centerOnUserLocation()
         }
-
-
-        return binding.root
     }
 
     override fun onMapReady(map: MapLibreMap) {
@@ -74,28 +79,35 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             mapView = mapView,
             iconId = "quest-marker-icon",
             onQuestClick = { quest, point ->
+                // Update ViewModel with selected quest
+                viewModel.selectQuest(quest)
+
                 // Show popup
                 questPopupHandler.showPopup(viewModel.getQuestInfoText(quest), point)
 
                 // Center and zoom to marker
-                val cameraPosition = org.maplibre.android.camera.CameraPosition.Builder()
-                    .target(org.maplibre.android.geometry.LatLng(quest.lat, quest.lng))
+                val cameraPosition = CameraPosition.Builder()
+                    .target(quest.location)
                     .zoom(10.5)
                     .build()
-                mapLibreMap.animateCamera(org.maplibre.android.camera.CameraUpdateFactory.newCameraPosition(cameraPosition))
+                mapLibreMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
             }
         )
-
 
         mapManager = MapManager(
             fragment = this,
             map = mapLibreMap,
             viewModel = viewModel,
-            markerHandler = markerManager,
-            onMapClick = { questPopupHandler.hidePopup() }
+            markerController = markerManager,
+            onMapClick = {
+                questPopupHandler.hidePopup()
+                viewModel.clearSelectedQuest()
+            }
         )
 
-        mapManager?.initializeMap()
+        mapManager?.initializeMap {
+            // Map is ready, you can perform additional setup here
+        }
     }
 
     override fun onResume() {

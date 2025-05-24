@@ -2,7 +2,6 @@ package de.challenge3.questapp.logik.map
 
 import android.graphics.PointF
 import de.challenge3.questapp.ui.home.QuestCompletion
-import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
@@ -15,40 +14,50 @@ class QuestMarkerManager(
     private val mapView: MapView,
     private val iconId: String,
     private val onQuestClick: (QuestCompletion, PointF) -> Unit
-) : QuestMarkerHandler {
+) : QuestMarkerHandler, MarkerController {
 
     private var symbolManager: SymbolManager? = null
     private val questSymbolMap = mutableMapOf<Symbol, QuestCompletion>()
 
-    fun initialize(style: Style) {
-        symbolManager?.onDestroy()
+    override fun initialize(style: Style) {
+        cleanup()
         symbolManager = SymbolManager(mapView, map, style).apply {
             iconAllowOverlap = true
             textAllowOverlap = true
-        }
-
-        symbolManager!!.addClickListener { symbol ->
-            questSymbolMap[symbol]?.let { quest ->
-                val screenPoint = map.projection.toScreenLocation(symbol.latLng)
-                onQuestClick(quest, screenPoint)
-            }
-            true
+            addClickListener(::handleMarkerClick)
         }
     }
 
     override fun addQuestMarkers(quests: List<QuestCompletion>) {
+        updateMarkers(quests)
+    }
+
+    override fun updateMarkers(quests: List<QuestCompletion>) {
         symbolManager?.deleteAll()
         questSymbolMap.clear()
 
         quests.forEach { quest ->
-            val symbol = symbolManager!!.create(
-                SymbolOptions()
-                    .withLatLng(LatLng(quest.lat, quest.lng))
-                    .withIconImage(iconId)
-                    .withIconSize(1.0f)
-            )
-            questSymbolMap[symbol] = quest
+            createMarkerForQuest(quest)
         }
+    }
+
+    private fun createMarkerForQuest(quest: QuestCompletion) {
+        val symbol = symbolManager?.create(
+            SymbolOptions()
+                .withLatLng(quest.location)
+                .withIconImage(iconId)
+                .withIconSize(1.0f)
+        )
+
+        symbol?.let { questSymbolMap[it] = quest }
+    }
+
+    private fun handleMarkerClick(symbol: Symbol): Boolean {
+        questSymbolMap[symbol]?.let { quest ->
+            val screenPoint = map.projection.toScreenLocation(symbol.latLng)
+            onQuestClick(quest, screenPoint)
+        }
+        return true
     }
 
     override fun clearMarkers() {
@@ -56,7 +65,12 @@ class QuestMarkerManager(
         questSymbolMap.clear()
     }
 
-    fun onDestroy() {
+    private fun cleanup() {
         symbolManager?.onDestroy()
+        questSymbolMap.clear()
+    }
+
+    override fun onDestroy() {
+        cleanup()
     }
 }

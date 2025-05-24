@@ -63,3 +63,8 @@ dependencies {
 configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
     ignoreFailures.set(true)
 }
+/*
+tasks.named("check") {
+    dependsOn("ktlintCheck")
+}
+*/

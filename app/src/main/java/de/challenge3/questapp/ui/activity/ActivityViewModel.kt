@@ -4,27 +4,51 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import de.challenge3.questapp.ui.home.QuestCompletion
-import java.text.SimpleDateFormat
-import java.util.*
+import de.challenge3.questapp.repository.QuestRepository
+import de.challenge3.questapp.repository.QuestRepositoryImpl
+import org.maplibre.android.geometry.LatLng
 
-class ActivityViewModel : ViewModel() {
+class ActivityViewModel(
+    private val questRepository: QuestRepository = QuestRepositoryImpl()
+) : ViewModel() {
 
-    private val _completedQuests = MutableLiveData<List<QuestCompletion>>().apply {
-        value = listOf(
-            QuestCompletion(52.5200, 13.4050, System.currentTimeMillis(), "Defeat the Goblin King", "might"),
-            QuestCompletion(48.8566, 2.3522, System.currentTimeMillis() - 3600000, "Solve the ancient riddle", "mind"),
-            QuestCompletion(51.5074, -0.1278, System.currentTimeMillis() - 7200000, "Heal the wounded traveler", "heart")
-        )
+    val completedQuests: LiveData<List<QuestCompletion>> = questRepository.getCompletedQuests()
+
+    private val _selectedQuest = MutableLiveData<QuestCompletion?>()
+    val selectedQuest: LiveData<QuestCompletion?> = _selectedQuest
+
+    private val _mapState = MutableLiveData<MapState>()
+    val mapState: LiveData<MapState> = _mapState
+
+    fun selectQuest(quest: QuestCompletion) {
+        _selectedQuest.value = quest
     }
-    val completedQuests: LiveData<List<QuestCompletion>> = _completedQuests
+
+    fun clearSelectedQuest() {
+        _selectedQuest.value = null
+    }
 
     fun getQuestInfoText(quest: QuestCompletion): String {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-        val formattedTime = dateFormat.format(Date(quest.timestamp))
         return """
-            ${quest.tag.uppercase()}
+            ${quest.tag.displayName.uppercase()}
             ${quest.questText}
-            Finished at: $formattedTime
+            XP: ${quest.experiencePoints}
+            Completed: ${quest.formattedTimestamp}
         """.trimIndent()
     }
+
+    fun updateMapState(state: MapState) {
+        _mapState.value = state
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        // Clean up resources
+    }
 }
+
+data class MapState(
+    val isLocationEnabled: Boolean = false,
+    val currentLocation: LatLng? = null,
+    val zoomLevel: Double = 10.5
+)

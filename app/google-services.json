@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "802898495159",
+    "project_id": "challenge3questapp",
+    "storage_bucket": "challenge3questapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:802898495159:android:dec5243c2d12c3a2fbaf32",
+        "android_client_info": {
+          "package_name": "de.challenge3.questapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyANX8oP1cm1lVxlSmq81XrI9Hz_S9H9_vs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -30,7 +30,6 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
     private var mapManager: MapManager? = null
     private lateinit var questPopupHandler: QuestPopUpHandler
 
-    // Modern permission request launcher
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -51,6 +50,7 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         )
     }
 
+    // sets  up UI layout and initializes the map
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -71,6 +71,7 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    // called when the map is loaded and ready to use
     override fun onMapReady(map: MapLibreMap) {
         mapLibreMap = map
 
@@ -110,6 +111,7 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    // resume, pause, start, stop, low memory handles correct behaviour when app is minimized/restarted
     override fun onResume() {
         super.onResume()
         mapView.onResume()

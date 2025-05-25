@@ -3,11 +3,15 @@ package de.challenge3.questapp
 import android.os.Bundle
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import de.challenge3.questapp.databinding.ActivityMainBinding
+import de.challenge3.questapp.utils.DataMigration
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -17,7 +21,12 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        /*
+        lifecycleScope.launch {
+            delay(1000)
+            DataMigration().migrateSampleDataToFirebase()
+        }
+         */
         setupNavigation()
     }
 

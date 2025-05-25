@@ -5,11 +5,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import de.challenge3.questapp.ui.home.QuestCompletion
 import de.challenge3.questapp.repository.QuestRepository
-import de.challenge3.questapp.repository.QuestRepositoryImpl
+import de.challenge3.questapp.repository.FirebaseQuestRepository
 import org.maplibre.android.geometry.LatLng
 
 class ActivityViewModel(
-    private val questRepository: QuestRepository = QuestRepositoryImpl()
+    private val questRepository: QuestRepository = FirebaseQuestRepository()
 ) : ViewModel() {
 
     val completedQuests: LiveData<List<QuestCompletion>> = questRepository.getCompletedQuests()
@@ -43,7 +43,8 @@ class ActivityViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        // Clean up resources
+        // Clean up Firebase listener
+        (questRepository as? FirebaseQuestRepository)?.stopListening()
     }
 }
 

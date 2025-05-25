@@ -21,12 +21,7 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        /*
-        lifecycleScope.launch {
-            delay(1000)
-            DataMigration().migrateSampleDataToFirebase()
-        }
-         */
+
         setupNavigation()
     }
 

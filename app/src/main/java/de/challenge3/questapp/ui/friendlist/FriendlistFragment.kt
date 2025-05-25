@@ -8,15 +8,27 @@ import android.widget.Toast
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import de.challenge3.questapp.databinding.FragmentFriendlistBinding
+import de.challenge3.questapp.repository.FirebaseFriendRepository
+import kotlinx.coroutines.launch
 
 class FriendlistFragment : Fragment() {
 
     private var _binding: FragmentFriendlistBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: FriendlistViewModel by viewModels()
+    private val viewModel: FriendlistViewModel by viewModels {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return FriendlistViewModel(requireContext()) as T
+            }
+        }
+    }
 
     private lateinit var friendsAdapter: FriendsAdapter
     private lateinit var friendRequestsAdapter: FriendRequestsAdapter
@@ -36,6 +48,7 @@ class FriendlistFragment : Fragment() {
 
         setupRecyclerViews()
         setupSearchFunctionality()
+        setupDebugButton()
         observeViewModel()
     }
 
@@ -89,6 +102,19 @@ class FriendlistFragment : Fragment() {
         }
     }
 
+    private fun setupDebugButton() {
+        // Add a debug button (you can remove this later)
+        binding.buttonClearSearch.setOnLongClickListener {
+            lifecycleScope.launch {
+                val repository = FirebaseFriendRepository(requireContext())
+                println("DEBUG: Current user ID: ${repository.getDebugUserId()}")
+                val requests = repository.debugCheckFriendRequests()
+                Toast.makeText(context, "Found ${requests.size} requests. Check logs.", Toast.LENGTH_LONG).show()
+            }
+            true
+        }
+    }
+
     private fun observeViewModel() {
         viewModel.friends.observe(viewLifecycleOwner) { friends ->
             friendsAdapter.submitList(friends)
@@ -97,6 +123,7 @@ class FriendlistFragment : Fragment() {
         }
 
         viewModel.friendRequests.observe(viewLifecycleOwner) { requests ->
+            println("DEBUG: Fragment received ${requests.size} friend requests")
             friendRequestsAdapter.submitList(requests)
             binding.textViewRequestsCount.text = "Friend Requests (${requests.size})"
             binding.groupFriendRequests.visibility = if (requests.isEmpty()) View.GONE else View.VISIBLE

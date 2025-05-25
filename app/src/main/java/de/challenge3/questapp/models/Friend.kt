@@ -7,33 +7,37 @@ data class Friend(
     val id: String,
     val username: String,
     val email: String,
-    val profileImageUrl: String? = null,
-    val level: Int = 1,
-    val totalExperience: Int = 0,
+    val level: Int,
+    val totalExperience: Int,
     val isOnline: Boolean = false,
-    val lastSeen: Long = System.currentTimeMillis(),
+    val lastSeen: Long? = null,
     val completedQuestsCount: Int = 0
 ) {
     val displayName: String
         get() = username.ifEmpty { email.substringBefore("@") }
 
     val levelProgress: Float
-        get() = (totalExperience % 1000) / 1000f // Assuming 1000 XP per level
+        get() {
+            val baseXpForLevel = level * 1000
+            val xpInCurrentLevel = totalExperience % 1000
+            return xpInCurrentLevel / 1000f
+        }
 
     val lastSeenFormatted: String
-        get() = if (isOnline) {
-            "Online"
-        } else {
-            val formatter = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())
-            "Last seen: ${formatter.format(Date(lastSeen))}"
+        get() = when {
+            isOnline -> "Online"
+            lastSeen != null -> {
+                val timeDiff = System.currentTimeMillis() - lastSeen
+                when {
+                    timeDiff < 60000 -> "Just now"
+                    timeDiff < 3600000 -> "${timeDiff / 60000}m ago"
+                    timeDiff < 86400000 -> "${timeDiff / 3600000}h ago"
+                    timeDiff < 604800000 -> "${timeDiff / 86400000}d ago"
+                    else -> SimpleDateFormat("MMM dd", Locale.getDefault()).format(Date(lastSeen))
+                }
+            }
+            else -> "Offline"
         }
-}
-
-enum class FriendshipStatus {
-    PENDING_SENT,
-    PENDING_RECEIVED,
-    ACCEPTED,
-    BLOCKED
 }
 
 data class FriendRequest(
@@ -46,16 +50,20 @@ data class FriendRequest(
 ) {
     val timeAgo: String
         get() {
-            val diff = System.currentTimeMillis() - timestamp
-            val minutes = diff / (1000 * 60)
-            val hours = minutes / 60
-            val days = hours / 24
-
+            val timeDiff = System.currentTimeMillis() - timestamp
             return when {
-                days > 0 -> "${days}d ago"
-                hours > 0 -> "${hours}h ago"
-                minutes > 0 -> "${minutes}m ago"
-                else -> "Just now"
+                timeDiff < 60000 -> "Just now"
+                timeDiff < 3600000 -> "${timeDiff / 60000}m ago"
+                timeDiff < 86400000 -> "${timeDiff / 3600000}h ago"
+                timeDiff < 604800000 -> "${timeDiff / 86400000}d ago"
+                else -> SimpleDateFormat("MMM dd", Locale.getDefault()).format(Date(timestamp))
             }
         }
+}
+
+enum class FriendshipStatus {
+    PENDING_SENT,
+    PENDING_RECEIVED,
+    ACCEPTED,
+    DECLINED
 }

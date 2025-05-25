@@ -1,17 +1,19 @@
 package de.challenge3.questapp.ui.friendlist
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import de.challenge3.questapp.models.Friend
 import de.challenge3.questapp.models.FriendRequest
+import de.challenge3.questapp.repository.FirebaseFriendRepository
 import de.challenge3.questapp.repository.FriendRepository
-import de.challenge3.questapp.repository.FriendRepositoryImpl
 import kotlinx.coroutines.launch
 
 class FriendlistViewModel(
-    private val friendRepository: FriendRepository = FriendRepositoryImpl()
+    private val context: Context,
+    private val friendRepository: FriendRepository = FirebaseFriendRepository(context)
 ) : ViewModel() {
 
     val friends: LiveData<List<Friend>> = friendRepository.getFriends()
@@ -125,5 +127,11 @@ class FriendlistViewModel(
     fun clearMessages() {
         _errorMessage.value = null
         _successMessage.value = null
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        // Stop Firebase listeners when ViewModel is cleared
+        (friendRepository as? FirebaseFriendRepository)?.stopListening()
     }
 }

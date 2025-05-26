@@ -17,10 +17,11 @@ class MigrationHelper(private val context: Context) {
 
     fun runMigrationsIfNeeded() {
         CoroutineScope(Dispatchers.IO).launch {
+            /*
             if (!isFriendsMigrated()) {
                 migrateFriends()
             }
-
+            */
             if (!isQuestsMigrated()) {
                 migrateQuests()
             }

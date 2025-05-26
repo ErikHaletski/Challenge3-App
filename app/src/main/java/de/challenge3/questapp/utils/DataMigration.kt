@@ -1,7 +1,7 @@
 package de.challenge3.questapp.utils
 
 import android.content.Context
-import de.challenge3.questapp.repository.FirebaseQuestRepository
+import de.challenge3.questapp.repository.FirebaseQuestCompletionRepository
 import de.challenge3.questapp.repository.FirebaseFriendRepository
 import de.challenge3.questapp.ui.home.QuestCompletion
 import de.challenge3.questapp.ui.home.QuestTag
@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 class DataMigration(private val context: Context) {
 
     fun migrateSampleDataToFirebase() {
-        val questRepository = FirebaseQuestRepository()
+        val questRepository = FirebaseQuestCompletionRepository()
         val friendRepository = FirebaseFriendRepository(context)
         val currentUserId = friendRepository.getCurrentUserId()
 
@@ -49,7 +49,7 @@ class DataMigration(private val context: Context) {
                     username = "User_5072a1"
                 )
             )
-            "User_a9e82e" -> listOf(
+            "User_a5284e" -> listOf(
                 QuestCompletion(
                     id = "",
                     lat = 50.8566, lng = 2.3522,
@@ -58,7 +58,7 @@ class DataMigration(private val context: Context) {
                     tag = QuestTag.MIND,
                     experiencePoints = 100,
                     userId = currentUserId,
-                    username = "User_a9e82e"
+                    username = "User_a5284e"
                 ),
                 QuestCompletion(
                     id = "",
@@ -68,7 +68,7 @@ class DataMigration(private val context: Context) {
                     tag = QuestTag.SPIRIT,
                     experiencePoints = 75,
                     userId = currentUserId,
-                    username = "User_a9e82e"
+                    username = "User_a5284e"
                 )
             )
             "User_ac69ea" -> listOf(

@@ -10,7 +10,7 @@ import de.challenge3.questapp.ui.home.QuestTag
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
-class FirebaseQuestRepository : QuestRepository {
+class FirebaseQuestCompletionRepository : QuestCompletionRepository {
 
     private val firestore = FirebaseFirestore.getInstance()
     private val questsCollection = firestore.collection("completed_quests")

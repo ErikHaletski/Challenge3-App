@@ -8,7 +8,7 @@ import de.challenge3.questapp.databinding.FragmentActivityBinding
 import de.challenge3.questapp.R
 import android.view.View
 
-class QuestPopUpHandler(binding: FragmentActivityBinding) {
+class QuestCompletionPopUpHandler(binding: FragmentActivityBinding) {
 
     private val questPopup: CardView = binding.root.findViewById(R.id.questPopup)
     private val questPopupText: TextView = binding.root.findViewById(R.id.questPopupText)

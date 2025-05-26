@@ -1,6 +1,6 @@
 package de.challenge3.questapp.ui.activity
 
-enum class QuestSortOption(val displayName: String) {
+enum class QuestCompletionSortOption(val displayName: String) {
     NEWEST_FIRST("Newest First"),
     OLDEST_FIRST("Oldest First"),
     FRIEND_NAME("Friend Name"),

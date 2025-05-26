@@ -8,8 +8,8 @@ import androidx.lifecycle.map
 import androidx.lifecycle.MediatorLiveData
 import de.challenge3.questapp.ui.home.QuestCompletion
 import de.challenge3.questapp.ui.home.QuestTag
-import de.challenge3.questapp.repository.QuestRepository
-import de.challenge3.questapp.repository.FirebaseQuestRepository
+import de.challenge3.questapp.repository.QuestCompletionRepository
+import de.challenge3.questapp.repository.FirebaseQuestCompletionRepository
 import de.challenge3.questapp.repository.FriendRepository
 import de.challenge3.questapp.repository.FirebaseFriendRepository
 import de.challenge3.questapp.models.Friend
@@ -18,7 +18,7 @@ import android.content.Context
 
 class ActivityViewModel(
     private val context: Context,
-    private val questRepository: QuestRepository = FirebaseQuestRepository(),
+    private val questCompletionRepository: QuestCompletionRepository = FirebaseQuestCompletionRepository(),
     private val friendRepository: FriendRepository = FirebaseFriendRepository(context)
 ) : ViewModel() {
 
@@ -44,13 +44,13 @@ class ActivityViewModel(
     private val _selectedFriendIds = MutableLiveData<Set<String>>(emptySet())
 
     // Sort state
-    private val _sortOption = MutableLiveData<QuestSortOption>(QuestSortOption.NEWEST_FIRST)
-    val sortOption: LiveData<QuestSortOption> = _sortOption
+    private val _sortOption = MutableLiveData<QuestCompletionSortOption>(QuestCompletionSortOption.NEWEST_FIRST)
+    val sortOption: LiveData<QuestCompletionSortOption> = _sortOption
 
     // All quests (unfiltered)
     private val allQuests: LiveData<List<QuestCompletion>> = friends.switchMap { friendsList ->
         val friendIds = friendsList.map { it.id }
-        questRepository.getQuestsForUserAndFriends(currentUserId, friendIds)
+        questCompletionRepository.getQuestsForUserAndFriends(currentUserId, friendIds)
     }
 
     // Tag filtered quests
@@ -142,21 +142,21 @@ class ActivityViewModel(
 
     private fun updateFilteredAndSortedQuests() {
         val quests = friendFilteredQuests.value ?: return
-        val sortBy = _sortOption.value ?: QuestSortOption.NEWEST_FIRST
+        val sortBy = _sortOption.value ?: QuestCompletionSortOption.NEWEST_FIRST
         val friendsList = friends.value ?: emptyList()
 
         // Sort the filtered list
         val sorted = when (sortBy) {
-            QuestSortOption.NEWEST_FIRST -> quests.sortedByDescending { it.timestamp }
-            QuestSortOption.OLDEST_FIRST -> quests.sortedBy { it.timestamp }
-            QuestSortOption.FRIEND_NAME -> quests.sortedWith { quest1, quest2 ->
+            QuestCompletionSortOption.NEWEST_FIRST -> quests.sortedByDescending { it.timestamp }
+            QuestCompletionSortOption.OLDEST_FIRST -> quests.sortedBy { it.timestamp }
+            QuestCompletionSortOption.FRIEND_NAME -> quests.sortedWith { quest1, quest2 ->
                 val name1 = getFriendDisplayName(quest1, friendsList)
                 val name2 = getFriendDisplayName(quest2, friendsList)
                 name1.compareTo(name2, ignoreCase = true)
             }
-            QuestSortOption.QUEST_TAG -> quests.sortedBy { it.tag.displayName }
-            QuestSortOption.EXPERIENCE_HIGH -> quests.sortedByDescending { it.experiencePoints }
-            QuestSortOption.EXPERIENCE_LOW -> quests.sortedBy { it.experiencePoints }
+            QuestCompletionSortOption.QUEST_TAG -> quests.sortedBy { it.tag.displayName }
+            QuestCompletionSortOption.EXPERIENCE_HIGH -> quests.sortedByDescending { it.experiencePoints }
+            QuestCompletionSortOption.EXPERIENCE_LOW -> quests.sortedBy { it.experiencePoints }
         }
 
         (filteredAndSortedQuests as MediatorLiveData).value = sorted
@@ -289,7 +289,7 @@ class ActivityViewModel(
         }
     }
 
-    fun setSortOption(option: QuestSortOption) {
+    fun setSortOption(option: QuestCompletionSortOption) {
         _sortOption.value = option
     }
 
@@ -323,7 +323,7 @@ class ActivityViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        (questRepository as? FirebaseQuestRepository)?.stopListening()
+        (questCompletionRepository as? FirebaseQuestCompletionRepository)?.stopListening()
         friendRepository.stopListening()
     }
 }

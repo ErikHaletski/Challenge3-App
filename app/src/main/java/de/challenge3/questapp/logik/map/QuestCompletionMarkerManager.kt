@@ -9,12 +9,12 @@ import org.maplibre.android.plugins.annotation.Symbol
 import org.maplibre.android.plugins.annotation.SymbolManager
 import org.maplibre.android.plugins.annotation.SymbolOptions
 
-class QuestMarkerManager(
+class QuestCompletionMarkerManager(
     private val map: MapLibreMap,
     private val mapView: MapView,
     private val iconId: String,
     private val onQuestClick: (QuestCompletion, PointF) -> Unit
-) : QuestMarkerHandler, MarkerController {
+) : QuestCompletionMarkerHandler, MarkerController {
 
     private var symbolManager: SymbolManager? = null
     private val questSymbolMap = mutableMapOf<Symbol, QuestCompletion>()

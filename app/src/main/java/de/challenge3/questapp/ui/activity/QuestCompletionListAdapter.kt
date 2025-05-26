@@ -13,11 +13,11 @@ import de.challenge3.questapp.ui.home.QuestTag
 import java.text.SimpleDateFormat
 import java.util.*
 
-class QuestListAdapter(
+class QuestCompletionListAdapter(
     private val onQuestClick: (QuestCompletion) -> Unit,
     private val onShowOnMapClick: (QuestCompletion) -> Unit,
     private val currentUserId: String
-) : ListAdapter<QuestCompletion, QuestListAdapter.QuestViewHolder>(QuestDiffCallback()) {
+) : ListAdapter<QuestCompletion, QuestCompletionListAdapter.QuestViewHolder>(QuestDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): QuestViewHolder {
         val binding = ItemQuestListBinding.inflate(

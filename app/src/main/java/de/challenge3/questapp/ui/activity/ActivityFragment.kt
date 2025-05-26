@@ -15,8 +15,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import de.challenge3.questapp.databinding.FragmentActivityBinding
 import de.challenge3.questapp.logik.map.MapManager
-import de.challenge3.questapp.logik.map.QuestMarkerManager
-import de.challenge3.questapp.logik.map.QuestPopUpHandler
+import de.challenge3.questapp.logik.map.QuestCompletionMarkerManager
+import de.challenge3.questapp.logik.map.QuestCompletionPopUpHandler
 import de.challenge3.questapp.repository.FirebaseFriendRepository
 import de.challenge3.questapp.ui.home.QuestTag
 import org.maplibre.android.camera.CameraPosition
@@ -43,9 +43,9 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
     }
 
     private var mapManager: MapManager? = null
-    private lateinit var questPopupHandler: QuestPopUpHandler
+    private lateinit var questCompletionPopupHandler: QuestCompletionPopUpHandler
     private lateinit var friendCheckboxAdapter: FriendCheckboxAdapter
-    private lateinit var questListAdapter: QuestListAdapter
+    private lateinit var questCompletionListAdapter: QuestCompletionListAdapter
     private var isUnifiedFilterExpanded = false
     private var isFriendFilterExpanded = false
     private var isTagFilterExpanded = false
@@ -78,7 +78,7 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
 
-        questPopupHandler = QuestPopUpHandler(binding)
+        questCompletionPopupHandler = QuestCompletionPopUpHandler(binding)
         setupUnifiedFilterUI()
         setupClickListeners()
         observeViewModel()
@@ -102,10 +102,10 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         val currentUserId = FirebaseFriendRepository(requireContext()).getCurrentUserId()
 
         // Setup unified quest list adapter
-        questListAdapter = QuestListAdapter(
+        questCompletionListAdapter = QuestCompletionListAdapter(
             onQuestClick = { quest ->
                 viewModel.selectQuest(quest)
-                questPopupHandler.showPopup(viewModel.getQuestInfoText(quest),
+                questCompletionPopupHandler.showPopup(viewModel.getQuestInfoText(quest),
                     android.graphics.PointF(binding.mapView.width / 2f, binding.mapView.height / 2f))
                 animateToQuest(quest)
             },
@@ -118,16 +118,16 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
 
         binding.recyclerViewQuestList.apply {
             layoutManager = LinearLayoutManager(context)
-            adapter = questListAdapter
+            adapter = questCompletionListAdapter
         }
 
         // Setup sort spinner
-        val sortAdapter = createThemedSpinnerAdapter(QuestSortOption.getDisplayNames())
+        val sortAdapter = createThemedSpinnerAdapter(QuestCompletionSortOption.getDisplayNames())
         binding.spinnerSortBy.adapter = sortAdapter
 
         binding.spinnerSortBy.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val selectedOption = QuestSortOption.values()[position]
+                val selectedOption = QuestCompletionSortOption.values()[position]
                 viewModel.setSortOption(selectedOption)
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
@@ -324,7 +324,7 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
 
         // Observe unified filtered and sorted quest list
         viewModel.filteredAndSortedQuests.observe(viewLifecycleOwner) { quests ->
-            questListAdapter.submitList(quests)
+            questCompletionListAdapter.submitList(quests)
             binding.emptyStateLayout.visibility = if (quests.isEmpty()) View.VISIBLE else View.GONE
             binding.recyclerViewQuestList.visibility = if (quests.isEmpty()) View.GONE else View.VISIBLE
 
@@ -334,7 +334,7 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
 
         // Observe sort option
         viewModel.sortOption.observe(viewLifecycleOwner) { option ->
-            val position = QuestSortOption.values().indexOf(option)
+            val position = QuestCompletionSortOption.values().indexOf(option)
             if (binding.spinnerSortBy.selectedItemPosition != position) {
                 binding.spinnerSortBy.setSelection(position)
             }
@@ -344,13 +344,13 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
     override fun onMapReady(map: MapLibreMap) {
         mapLibreMap = map
 
-        val markerManager = QuestMarkerManager(
+        val markerManager = QuestCompletionMarkerManager(
             map = mapLibreMap,
             mapView = mapView,
             iconId = "quest-marker-icon",
             onQuestClick = { quest, point ->
                 viewModel.selectQuest(quest)
-                questPopupHandler.showPopup(viewModel.getQuestInfoText(quest), point)
+                questCompletionPopupHandler.showPopup(viewModel.getQuestInfoText(quest), point)
 
                 val cameraPosition = CameraPosition.Builder()
                     .target(quest.location)
@@ -366,7 +366,7 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             viewModel = viewModel,
             markerController = markerManager,
             onMapClick = {
-                questPopupHandler.hidePopup()
+                questCompletionPopupHandler.hidePopup()
                 viewModel.clearSelectedQuest()
             }
         )

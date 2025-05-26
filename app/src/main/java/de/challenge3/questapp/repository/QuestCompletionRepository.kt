@@ -3,7 +3,7 @@ package de.challenge3.questapp.repository
 import androidx.lifecycle.LiveData
 import de.challenge3.questapp.ui.home.QuestCompletion
 
-interface QuestRepository {
+interface QuestCompletionRepository {
     fun getCompletedQuests(): LiveData<List<QuestCompletion>>
     fun getQuestsForUserAndFriends(userId: String, friendIds: List<String>): LiveData<List<QuestCompletion>>
     suspend fun addCompletedQuest(quest: QuestCompletion)

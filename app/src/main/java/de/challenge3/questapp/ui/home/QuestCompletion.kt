@@ -11,7 +11,9 @@ data class QuestCompletion(
     val timestamp: Long,
     val questText: String,
     val tag: QuestTag,
-    val experiencePoints: Int = 0
+    val experiencePoints: Int = 0,
+    val userId: String = "",
+    val username: String = ""
 ) {
     val formattedTimestamp: String
         get() = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())

@@ -3,16 +3,31 @@ package de.challenge3.questapp.ui.activity
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.switchMap
 import de.challenge3.questapp.ui.home.QuestCompletion
 import de.challenge3.questapp.repository.QuestRepository
 import de.challenge3.questapp.repository.FirebaseQuestRepository
+import de.challenge3.questapp.repository.FriendRepository
+import de.challenge3.questapp.repository.FirebaseFriendRepository
 import org.maplibre.android.geometry.LatLng
+import android.content.Context
 
 class ActivityViewModel(
-    private val questRepository: QuestRepository = FirebaseQuestRepository()
+    private val context: Context,
+    private val questRepository: QuestRepository = FirebaseQuestRepository(),
+    private val friendRepository: FriendRepository = FirebaseFriendRepository(context)
 ) : ViewModel() {
 
-    val completedQuests: LiveData<List<QuestCompletion>> = questRepository.getCompletedQuests()
+    private val currentUserId = friendRepository.getCurrentUserId()
+
+    // Get friends list
+    private val friends = friendRepository.getFriends()
+
+    // Create filtered quests based on current user + friends
+    val completedQuests: LiveData<List<QuestCompletion>> = friends.switchMap { friendsList ->
+        val friendIds = friendsList.map { it.id }
+        questRepository.getQuestsForUserAndFriends(currentUserId, friendIds)
+    }
 
     private val _selectedQuest = MutableLiveData<QuestCompletion?>()
     val selectedQuest: LiveData<QuestCompletion?> = _selectedQuest
@@ -29,11 +44,18 @@ class ActivityViewModel(
     }
 
     fun getQuestInfoText(quest: QuestCompletion): String {
+        val userInfo = if (quest.userId == currentUserId) {
+            "You"
+        } else {
+            quest.username.ifEmpty { "Friend" }
+        }
+
         return """
             ${quest.tag.displayName.uppercase()}
             ${quest.questText}
+            Completed by: $userInfo
             XP: ${quest.experiencePoints}
-            Completed: ${quest.formattedTimestamp}
+            ${quest.formattedTimestamp}
         """.trimIndent()
     }
 
@@ -43,8 +65,8 @@ class ActivityViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        // Clean up Firebase listener
         (questRepository as? FirebaseQuestRepository)?.stopListening()
+        friendRepository.stopListening()
     }
 }
 

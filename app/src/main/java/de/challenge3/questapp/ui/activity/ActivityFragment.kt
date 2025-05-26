@@ -8,6 +8,8 @@ import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import de.challenge3.questapp.databinding.FragmentActivityBinding
 import de.challenge3.questapp.logik.map.MapManager
 import de.challenge3.questapp.logik.map.QuestMarkerManager
@@ -26,7 +28,15 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
     private lateinit var mapView: MapView
     private lateinit var mapLibreMap: MapLibreMap
 
-    private val viewModel: ActivityViewModel by viewModels()
+    private val viewModel: ActivityViewModel by viewModels {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return ActivityViewModel(requireContext()) as T
+            }
+        }
+    }
+
     private var mapManager: MapManager? = null
     private lateinit var questPopupHandler: QuestPopUpHandler
 
@@ -50,7 +60,6 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         )
     }
 
-    // sets  up UI layout and initializes the map
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -71,7 +80,6 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    // called when the map is loaded and ready to use
     override fun onMapReady(map: MapLibreMap) {
         mapLibreMap = map
 
@@ -80,13 +88,9 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             mapView = mapView,
             iconId = "quest-marker-icon",
             onQuestClick = { quest, point ->
-                // Update ViewModel with selected quest
                 viewModel.selectQuest(quest)
-
-                // Show popup
                 questPopupHandler.showPopup(viewModel.getQuestInfoText(quest), point)
 
-                // Center and zoom to marker
                 val cameraPosition = CameraPosition.Builder()
                     .target(quest.location)
                     .zoom(10.5)
@@ -107,11 +111,10 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         )
 
         mapManager?.initializeMap {
-            // Map is ready, you can perform additional setup here
+            // Map is ready
         }
     }
 
-    // resume, pause, start, stop, low memory handles correct behaviour when app is minimized/restarted
     override fun onResume() {
         super.onResume()
         mapView.onResume()

@@ -49,7 +49,7 @@ class MigrationHelper(private val context: Context) {
 
     private fun migrateQuests() {
         try {
-            val migration = DataMigration()
+            val migration = DataMigration(context)
             migration.migrateSampleDataToFirebase()
             // You can implement quest migration here if needed
             prefs.edit().putBoolean(KEY_QUESTS_MIGRATED, true).apply()

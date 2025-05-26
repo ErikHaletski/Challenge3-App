@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp"
+    android:foreground="?android:attr/selectableItemBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <!-- Quest Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- Quest Tag Indicator -->
+            <View
+                android:id="@+id/questTagIndicator"
+                android:layout_width="4dp"
+                android:layout_height="24dp"
+                android:background="#4CAF50"
+                android:layout_marginEnd="8dp" />
+
+            <!-- Quest Tag Text -->
+            <TextView
+                android:id="@+id/textQuestTag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MIGHT"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="#4CAF50"
+                android:background="@drawable/tag_background"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="2dp" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <!-- Experience Points -->
+            <TextView
+                android:id="@+id/textExperiencePoints"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="+50 XP"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="#FF9800"
+                tools:text="+50 XP" />
+
+        </LinearLayout>
+
+        <!-- Quest Text -->
+        <TextView
+            android:id="@+id/textQuestText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Complete a challenging workout"
+            android:textSize="14sp"
+            android:textColor="#333333"
+            android:layout_marginTop="8dp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            tools:text="Complete a challenging workout at the gym" />
+
+        <!-- Quest Footer -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="8dp">
+
+            <!-- User Info -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/textUsername"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="QuestMaster"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="#666666"
+                    tools:text="QuestMaster" />
+
+                <TextView
+                    android:id="@+id/textTimestamp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="2 hours ago"
+                    android:textSize="11sp"
+                    android:textColor="#999999"
+                    tools:text="2 hours ago" />
+
+            </LinearLayout>
+
+            <!-- Location Button -->
+            <ImageButton
+                android:id="@+id/btnShowOnMap"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_location_on"
+                android:contentDescription="Show on map"
+                android:scaleType="centerInside"
+                app:tint="#666666" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

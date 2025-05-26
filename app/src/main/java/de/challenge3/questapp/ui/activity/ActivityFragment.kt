@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -15,6 +17,8 @@ import de.challenge3.questapp.databinding.FragmentActivityBinding
 import de.challenge3.questapp.logik.map.MapManager
 import de.challenge3.questapp.logik.map.QuestMarkerManager
 import de.challenge3.questapp.logik.map.QuestPopUpHandler
+import de.challenge3.questapp.repository.FirebaseFriendRepository
+import de.challenge3.questapp.ui.home.QuestTag
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.maps.MapLibreMap
@@ -41,7 +45,8 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
     private var mapManager: MapManager? = null
     private lateinit var questPopupHandler: QuestPopUpHandler
     private lateinit var friendFilterAdapter: FriendFilterAdapter
-    private var isFilterExpanded = false
+    private lateinit var questListAdapter: QuestListAdapter
+    private var isUnifiedFilterExpanded = false
 
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -72,14 +77,14 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         mapView.getMapAsync(this)
 
         questPopupHandler = QuestPopUpHandler(binding)
-        setupFilterUI()
+        setupUnifiedFilterUI()
         setupClickListeners()
         observeViewModel()
 
         return binding.root
     }
 
-    private fun setupFilterUI() {
+    private fun setupUnifiedFilterUI() {
         // Setup friend filter RecyclerView
         friendFilterAdapter = FriendFilterAdapter { friendId, isSelected ->
             viewModel.toggleFriendFilter(friendId, isSelected)
@@ -90,6 +95,66 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             adapter = friendFilterAdapter
             isNestedScrollingEnabled = false
         }
+
+        // Get current user ID from repository
+        val currentUserId = FirebaseFriendRepository(requireContext()).getCurrentUserId()
+
+        // Setup unified quest list adapter
+        questListAdapter = QuestListAdapter(
+            onQuestClick = { quest ->
+                viewModel.selectQuest(quest)
+                questPopupHandler.showPopup(viewModel.getQuestInfoText(quest),
+                    android.graphics.PointF(binding.mapView.width / 2f, binding.mapView.height / 2f))
+                animateToQuest(quest)
+            },
+            onShowOnMapClick = { quest ->
+                animateToQuest(quest)
+                viewModel.selectQuest(quest)
+            },
+            currentUserId = currentUserId
+        )
+
+        binding.recyclerViewQuestList.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = questListAdapter
+        }
+
+        // Setup tag filter spinner
+        val tagOptions = mutableListOf("All Tags").apply {
+            addAll(QuestTag.values().map { it.displayName })
+        }
+        val tagAdapter = createSpinnerAdapter(tagOptions.toTypedArray())
+        binding.spinnerTagFilter.adapter = tagAdapter
+
+        binding.spinnerTagFilter.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val selectedTag = if (position == 0) null else QuestTag.values()[position - 1]
+                viewModel.setTagFilter(selectedTag)
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
+        // Setup friend filter spinner (will be populated when friends are loaded)
+        val friendAdapter = createSpinnerAdapter(arrayOf("Everyone"))
+        binding.spinnerFriendFilter.adapter = friendAdapter
+
+        // Setup sort spinner
+        val sortAdapter = createSpinnerAdapter(QuestSortOption.getDisplayNames())
+        binding.spinnerSortBy.adapter = sortAdapter
+
+        binding.spinnerSortBy.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val selectedOption = QuestSortOption.values()[position]
+                viewModel.setSortOption(selectedOption)
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+    }
+
+    private fun createSpinnerAdapter(items: Array<String>): ArrayAdapter<String> {
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, items)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        return adapter
     }
 
     private fun setupClickListeners() {
@@ -97,9 +162,9 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             mapManager?.centerOnUserLocation()
         }
 
-        // Filter toggle
-        binding.btnToggleFilter.setOnClickListener {
-            toggleFilterVisibility()
+        // Unified filter toggle
+        binding.btnToggleUnifiedFilter.setOnClickListener {
+            toggleUnifiedFilterVisibility()
         }
 
         // My quests toggle
@@ -117,13 +182,30 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    private fun toggleFilterVisibility() {
-        isFilterExpanded = !isFilterExpanded
-        binding.filterContent.visibility = if (isFilterExpanded) View.VISIBLE else View.GONE
+    private fun toggleUnifiedFilterVisibility() {
+        isUnifiedFilterExpanded = !isUnifiedFilterExpanded
 
-        // Rotate the expand icon
-        val rotation = if (isFilterExpanded) 180f else 0f
-        binding.btnToggleFilter.animate().rotation(rotation).setDuration(200).start()
+        if (isUnifiedFilterExpanded) {
+            // Expanded state - show full content
+            binding.unifiedFilterContent.visibility = View.VISIBLE
+            binding.textFiltersCollapsed.visibility = View.GONE
+            binding.btnToggleUnifiedFilter.rotation = 180f
+        } else {
+            // Collapsed state - show minimal header
+            binding.unifiedFilterContent.visibility = View.GONE
+            binding.textFiltersCollapsed.visibility = View.VISIBLE
+            binding.btnToggleUnifiedFilter.rotation = 0f
+        }
+    }
+
+    private fun animateToQuest(quest: de.challenge3.questapp.ui.home.QuestCompletion) {
+        if (::mapLibreMap.isInitialized) {
+            val cameraPosition = CameraPosition.Builder()
+                .target(quest.location)
+                .zoom(15.0)
+                .build()
+            mapLibreMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
+        }
     }
 
     private fun observeViewModel() {
@@ -131,6 +213,37 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         viewModel.friendFilterItems.observe(viewLifecycleOwner) { items ->
             friendFilterAdapter.submitList(items)
             binding.textNoFriends.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+        }
+
+        // Observe friends for friend filter spinner
+        viewModel.friends.observe(viewLifecycleOwner) { friends ->
+            val friendOptions = mutableListOf("Everyone", "Me").apply {
+                addAll(friends.map { it.displayName })
+            }
+            val friendAdapter = createSpinnerAdapter(friendOptions.toTypedArray())
+            binding.spinnerFriendFilter.adapter = friendAdapter
+
+            binding.spinnerFriendFilter.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                    val selectedFriend = when (position) {
+                        0 -> "all"
+                        1 -> "me"
+                        else -> friends[position - 2].id
+                    }
+                    viewModel.setFriendFilter(if (selectedFriend == "all") null else selectedFriend)
+                }
+                override fun onNothingSelected(parent: AdapterView<*>?) {}
+            }
+        }
+
+        // Observe unified filtered and sorted quest list
+        viewModel.filteredAndSortedQuests.observe(viewLifecycleOwner) { quests ->
+            questListAdapter.submitList(quests)
+            binding.emptyStateLayout.visibility = if (quests.isEmpty()) View.VISIBLE else View.GONE
+            binding.recyclerViewQuestList.visibility = if (quests.isEmpty()) View.GONE else View.VISIBLE
+
+            // Update quest count
+            binding.textQuestCount.text = "${quests.size} quests"
         }
 
         // Observe my quest count
@@ -144,6 +257,14 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             binding.switchMyQuests.isChecked = show
             binding.switchMyQuests.setOnCheckedChangeListener { _, isChecked ->
                 viewModel.toggleMyQuests(isChecked)
+            }
+        }
+
+        // Observe sort option
+        viewModel.sortOption.observe(viewLifecycleOwner) { option ->
+            val position = QuestSortOption.values().indexOf(option)
+            if (binding.spinnerSortBy.selectedItemPosition != position) {
+                binding.spinnerSortBy.setSelection(position)
             }
         }
     }

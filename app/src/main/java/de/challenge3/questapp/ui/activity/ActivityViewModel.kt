@@ -7,6 +7,7 @@ import androidx.lifecycle.switchMap
 import androidx.lifecycle.map
 import androidx.lifecycle.MediatorLiveData
 import de.challenge3.questapp.ui.home.QuestCompletion
+import de.challenge3.questapp.ui.home.QuestTag
 import de.challenge3.questapp.repository.QuestRepository
 import de.challenge3.questapp.repository.FirebaseQuestRepository
 import de.challenge3.questapp.repository.FriendRepository
@@ -26,10 +27,21 @@ class ActivityViewModel(
     // Get friends list
     val friends = friendRepository.getFriends()
 
-    // Filter state
+    // Unified filter state
     private val _selectedFriendIds = MutableLiveData<Set<String>>(emptySet())
     private val _showMyQuests = MutableLiveData<Boolean>(true)
     val showMyQuests: LiveData<Boolean> = _showMyQuests
+
+    // Unified quest filters
+    private val _selectedTagFilter = MutableLiveData<QuestTag?>(null)
+    val selectedTagFilter: LiveData<QuestTag?> = _selectedTagFilter
+
+    private val _selectedFriendFilter = MutableLiveData<String?>(null)
+    val selectedFriendFilter: LiveData<String?> = _selectedFriendFilter
+
+    // Sort state
+    private val _sortOption = MutableLiveData<QuestSortOption>(QuestSortOption.NEWEST_FIRST)
+    val sortOption: LiveData<QuestSortOption> = _sortOption
 
     // All quests (unfiltered)
     private val allQuests: LiveData<List<QuestCompletion>> = friends.switchMap { friendsList ->
@@ -37,12 +49,24 @@ class ActivityViewModel(
         questRepository.getQuestsForUserAndFriends(currentUserId, friendIds)
     }
 
-    // Filtered quests based on user selection
-    val completedQuests: LiveData<List<QuestCompletion>> = MediatorLiveData<List<QuestCompletion>>().apply {
-        addSource(allQuests) { updateFilteredQuests() }
-        addSource(_selectedFriendIds) { updateFilteredQuests() }
-        addSource(_showMyQuests) { updateFilteredQuests() }
+    // Unified filtered quests (for both map markers and quest list)
+    private val baseFilteredQuests: LiveData<List<QuestCompletion>> = MediatorLiveData<List<QuestCompletion>>().apply {
+        addSource(allQuests) { updateBaseFilteredQuests() }
+        addSource(_selectedFriendIds) { updateBaseFilteredQuests() }
+        addSource(_showMyQuests) { updateBaseFilteredQuests() }
     }
+
+    // Final filtered and sorted quests (for quest list display and map markers)
+    val filteredAndSortedQuests: LiveData<List<QuestCompletion>> = MediatorLiveData<List<QuestCompletion>>().apply {
+        addSource(baseFilteredQuests) { updateFilteredAndSortedQuests() }
+        addSource(_selectedTagFilter) { updateFilteredAndSortedQuests() }
+        addSource(_selectedFriendFilter) { updateFilteredAndSortedQuests() }
+        addSource(_sortOption) { updateFilteredAndSortedQuests() }
+        addSource(friends) { updateFilteredAndSortedQuests() }
+    }
+
+    // For backward compatibility with map markers (same as filteredAndSortedQuests)
+    val completedQuests: LiveData<List<QuestCompletion>> = filteredAndSortedQuests
 
     // Friend filter items for the UI
     val friendFilterItems: LiveData<List<FriendFilterItem>> = MediatorLiveData<List<FriendFilterItem>>().apply {
@@ -55,6 +79,8 @@ class ActivityViewModel(
     val myQuestCount: LiveData<Int> = allQuests.map { quests ->
         quests.count { it.userId == currentUserId }
     }
+
+    val totalQuestCount: LiveData<Int> = filteredAndSortedQuests.map { it.size }
 
     private val _selectedQuest = MutableLiveData<QuestCompletion?>()
     val selectedQuest: LiveData<QuestCompletion?> = _selectedQuest
@@ -71,7 +97,7 @@ class ActivityViewModel(
         }
     }
 
-    private fun updateFilteredQuests() {
+    private fun updateBaseFilteredQuests() {
         val quests = allQuests.value ?: return
         val selectedFriends = _selectedFriendIds.value ?: emptySet()
         val showMy = _showMyQuests.value ?: true
@@ -84,7 +110,58 @@ class ActivityViewModel(
             }
         }
 
-        (completedQuests as MediatorLiveData).value = filtered
+        (baseFilteredQuests as MediatorLiveData).value = filtered
+    }
+
+    private fun updateFilteredAndSortedQuests() {
+        val quests = baseFilteredQuests.value ?: return
+        val tagFilter = _selectedTagFilter.value
+        val friendFilter = _selectedFriendFilter.value
+        val sortBy = _sortOption.value ?: QuestSortOption.NEWEST_FIRST
+        val friendsList = friends.value ?: emptyList()
+
+        // Apply additional filters
+        var filtered = quests
+
+        // Filter by tag
+        if (tagFilter != null) {
+            filtered = filtered.filter { it.tag == tagFilter }
+        }
+
+        // Filter by specific friend
+        if (friendFilter != null && friendFilter != "all") {
+            filtered = if (friendFilter == "me") {
+                filtered.filter { it.userId == currentUserId }
+            } else {
+                filtered.filter { it.userId == friendFilter }
+            }
+        }
+
+        // Sort the filtered list
+        val sorted = when (sortBy) {
+            QuestSortOption.NEWEST_FIRST -> filtered.sortedByDescending { it.timestamp }
+            QuestSortOption.OLDEST_FIRST -> filtered.sortedBy { it.timestamp }
+            QuestSortOption.FRIEND_NAME -> filtered.sortedWith { quest1, quest2 ->
+                val name1 = getFriendDisplayName(quest1, friendsList)
+                val name2 = getFriendDisplayName(quest2, friendsList)
+                name1.compareTo(name2, ignoreCase = true)
+            }
+            QuestSortOption.QUEST_TAG -> filtered.sortedBy { it.tag.displayName }
+            QuestSortOption.EXPERIENCE_HIGH -> filtered.sortedByDescending { it.experiencePoints }
+            QuestSortOption.EXPERIENCE_LOW -> filtered.sortedBy { it.experiencePoints }
+        }
+
+        (filteredAndSortedQuests as MediatorLiveData).value = sorted
+    }
+
+    private fun getFriendDisplayName(quest: QuestCompletion, friendsList: List<Friend>): String {
+        return when {
+            quest.userId == currentUserId -> "You"
+            quest.username.isNotEmpty() -> quest.username
+            else -> {
+                friendsList.find { it.id == quest.userId }?.displayName ?: "Unknown"
+            }
+        }
     }
 
     private fun updateFriendFilterItems() {
@@ -124,6 +201,18 @@ class ActivityViewModel(
 
     fun deselectAllFriends() {
         _selectedFriendIds.value = emptySet()
+    }
+
+    fun setSortOption(option: QuestSortOption) {
+        _sortOption.value = option
+    }
+
+    fun setTagFilter(tag: QuestTag?) {
+        _selectedTagFilter.value = tag
+    }
+
+    fun setFriendFilter(friendId: String?) {
+        _selectedFriendFilter.value = friendId
     }
 
     fun selectQuest(quest: QuestCompletion) {

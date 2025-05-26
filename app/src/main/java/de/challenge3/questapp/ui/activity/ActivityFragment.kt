@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
 import de.challenge3.questapp.databinding.FragmentActivityBinding
 import de.challenge3.questapp.logik.map.MapManager
 import de.challenge3.questapp.logik.map.QuestMarkerManager
@@ -39,6 +40,8 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
 
     private var mapManager: MapManager? = null
     private lateinit var questPopupHandler: QuestPopUpHandler
+    private lateinit var friendFilterAdapter: FriendFilterAdapter
+    private var isFilterExpanded = false
 
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -69,14 +72,79 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         mapView.getMapAsync(this)
 
         questPopupHandler = QuestPopUpHandler(binding)
+        setupFilterUI()
         setupClickListeners()
+        observeViewModel()
 
         return binding.root
+    }
+
+    private fun setupFilterUI() {
+        // Setup friend filter RecyclerView
+        friendFilterAdapter = FriendFilterAdapter { friendId, isSelected ->
+            viewModel.toggleFriendFilter(friendId, isSelected)
+        }
+
+        binding.recyclerViewFriendFilters.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = friendFilterAdapter
+            isNestedScrollingEnabled = false
+        }
     }
 
     private fun setupClickListeners() {
         binding.btnCenterLocation.setOnClickListener {
             mapManager?.centerOnUserLocation()
+        }
+
+        // Filter toggle
+        binding.btnToggleFilter.setOnClickListener {
+            toggleFilterVisibility()
+        }
+
+        // My quests toggle
+        binding.switchMyQuests.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.toggleMyQuests(isChecked)
+        }
+
+        // Select/Deselect all buttons
+        binding.btnSelectAll.setOnClickListener {
+            viewModel.selectAllFriends()
+        }
+
+        binding.btnDeselectAll.setOnClickListener {
+            viewModel.deselectAllFriends()
+        }
+    }
+
+    private fun toggleFilterVisibility() {
+        isFilterExpanded = !isFilterExpanded
+        binding.filterContent.visibility = if (isFilterExpanded) View.VISIBLE else View.GONE
+
+        // Rotate the expand icon
+        val rotation = if (isFilterExpanded) 180f else 0f
+        binding.btnToggleFilter.animate().rotation(rotation).setDuration(200).start()
+    }
+
+    private fun observeViewModel() {
+        // Observe friend filter items
+        viewModel.friendFilterItems.observe(viewLifecycleOwner) { items ->
+            friendFilterAdapter.submitList(items)
+            binding.textNoFriends.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+        }
+
+        // Observe my quest count
+        viewModel.myQuestCount.observe(viewLifecycleOwner) { count ->
+            binding.textMyQuestCount.text = "$count quests"
+        }
+
+        // Observe my quests toggle state
+        viewModel.showMyQuests.observe(viewLifecycleOwner) { show ->
+            binding.switchMyQuests.setOnCheckedChangeListener(null)
+            binding.switchMyQuests.isChecked = show
+            binding.switchMyQuests.setOnCheckedChangeListener { _, isChecked ->
+                viewModel.toggleMyQuests(isChecked)
+            }
         }
     }
 

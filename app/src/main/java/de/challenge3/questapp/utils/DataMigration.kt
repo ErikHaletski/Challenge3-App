@@ -25,57 +25,106 @@ class DataMigration(private val context: Context) {
         }
     }
 
-    private fun getSampleQuests(currentUserId: String) = listOf(
-        // Current user's quests
-        QuestCompletion(
-            id = "",
-            lat = 52.5200, lng = 13.4050,
-            timestamp = System.currentTimeMillis(),
-            questText = "Defeat the Goblin King",
-            tag = QuestTag.MIGHT,
-            experiencePoints = 150,
-            userId = currentUserId,
-            username = getUsernameForId(currentUserId)
-        ),
-        QuestCompletion(
-            id = "",
-            lat = 51.5074, lng = -0.1278,
-            timestamp = System.currentTimeMillis() - 7200000,
-            questText = "Heal the wounded traveler",
-            tag = QuestTag.HEART,
-            experiencePoints = 75,
-            userId = currentUserId,
-            username = getUsernameForId(currentUserId)
-        ),
-        // Add some quests for other users too (so friends can see them)
-        QuestCompletion(
-            id = "",
-            lat = 48.8566, lng = 2.3522,
-            timestamp = System.currentTimeMillis() - 3600000,
-            questText = "Solve the ancient riddle",
-            tag = QuestTag.MIND,
-            experiencePoints = 100,
-            userId = "user_041d41b3-465a-4d50-bff7-5b3ab78096fa",
-            username = "User_5072a1"
-        ),
-        QuestCompletion(
-            id = "",
-            lat = 54.5074, lng = -0.7278,
-            timestamp = System.currentTimeMillis() - 5000000,
-            questText = "Meditate for 10 minutes",
-            tag = QuestTag.SPIRIT,
-            experiencePoints = 75,
-            userId = "user_347a011a-fe8a-4f52-87a3-51bdd25b143c",
-            username = "User_49d22a"
-        )
-    )
-
-    private fun getUsernameForId(userId: String): String {
-        return when (userId) {
-            "user_9ac93079-2cc2-4ca2-b77e-3025211b8127" -> "User_ac69ea"
-            "user_041d41b3-465a-4d50-bff7-5b3ab78096fa" -> "User_5072a1"
-            "user_347a011a-fe8a-4f52-87a3-51bdd25b143c" -> "User_49d22a"
-            else -> "Unknown User"
+    private fun getSampleQuests(currentUserId: String): List<QuestCompletion> {
+        return when (getCurrentUsername()) {
+            "User_5072a1" -> listOf(
+                QuestCompletion(
+                    id = "",
+                    lat = 48.8566, lng = 2.3522,
+                    timestamp = System.currentTimeMillis() - 3600000,
+                    questText = "Q1",
+                    tag = QuestTag.MIND,
+                    experiencePoints = 100,
+                    userId = currentUserId,
+                    username = "User_5072a1"
+                ),
+                QuestCompletion(
+                    id = "",
+                    lat = 54.5074, lng = -0.7278,
+                    timestamp = System.currentTimeMillis() - 5000000,
+                    questText = "Q2",
+                    tag = QuestTag.SPIRIT,
+                    experiencePoints = 75,
+                    userId = currentUserId,
+                    username = "User_5072a1"
+                )
+            )
+            "User_a9e82e" -> listOf(
+                QuestCompletion(
+                    id = "",
+                    lat = 50.8566, lng = 2.3522,
+                    timestamp = System.currentTimeMillis() - 3600000,
+                    questText = "Q3",
+                    tag = QuestTag.MIND,
+                    experiencePoints = 100,
+                    userId = currentUserId,
+                    username = "User_a9e82e"
+                ),
+                QuestCompletion(
+                    id = "",
+                    lat = 53.5074, lng = -0.9278,
+                    timestamp = System.currentTimeMillis() - 5000000,
+                    questText = "Q4",
+                    tag = QuestTag.SPIRIT,
+                    experiencePoints = 75,
+                    userId = currentUserId,
+                    username = "User_a9e82e"
+                )
+            )
+            "User_ac69ea" -> listOf(
+                QuestCompletion(
+                    id = "",
+                    lat = 38.8566, lng = 2.3522,
+                    timestamp = System.currentTimeMillis() - 3600000,
+                    questText = "Q5",
+                    tag = QuestTag.MIND,
+                    experiencePoints = 100,
+                    userId = currentUserId,
+                    username = "User_ac69ea"
+                ),
+                QuestCompletion(
+                    id = "",
+                    lat = 44.5074, lng = -0.4278,
+                    timestamp = System.currentTimeMillis() - 5000000,
+                    questText = "Q6",
+                    tag = QuestTag.SPIRIT,
+                    experiencePoints = 75,
+                    userId = currentUserId,
+                    username = "User_ac69ea"
+                )
+            )
+            "User_49d22a" -> listOf(
+                QuestCompletion(
+                    id = "",
+                    lat = 68.8566, lng = 1.3522,
+                    timestamp = System.currentTimeMillis() - 3600000,
+                    questText = "Q7",
+                    tag = QuestTag.MIND,
+                    experiencePoints = 100,
+                    userId = currentUserId,
+                    username = "User_49d22a"
+                ),
+                QuestCompletion(
+                    id = "",
+                    lat = 74.5074, lng = -0.3278,
+                    timestamp = System.currentTimeMillis() - 5000000,
+                    questText = "Q8",
+                    tag = QuestTag.SPIRIT,
+                    experiencePoints = 75,
+                    userId = currentUserId,
+                    username = "User_49d22a"
+                )
+            )
+            else -> emptyList()
         }
+    }
+
+    private fun getCurrentUsername(): String {
+        val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val deviceId = android.provider.Settings.Secure.getString(
+            context.contentResolver,
+            android.provider.Settings.Secure.ANDROID_ID
+        )
+        return "User_${deviceId.takeLast(6)}"
     }
 }

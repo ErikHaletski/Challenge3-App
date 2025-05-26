@@ -29,8 +29,6 @@ class ActivityViewModel(
 
     // Unified filter state
     private val _selectedFriendIds = MutableLiveData<Set<String>>(emptySet())
-    private val _showMyQuests = MutableLiveData<Boolean>(true)
-    val showMyQuests: LiveData<Boolean> = _showMyQuests
 
     // Unified quest filters
     private val _selectedTagFilter = MutableLiveData<QuestTag?>(null)
@@ -53,7 +51,6 @@ class ActivityViewModel(
     private val baseFilteredQuests: LiveData<List<QuestCompletion>> = MediatorLiveData<List<QuestCompletion>>().apply {
         addSource(allQuests) { updateBaseFilteredQuests() }
         addSource(_selectedFriendIds) { updateBaseFilteredQuests() }
-        addSource(_showMyQuests) { updateBaseFilteredQuests() }
     }
 
     // Final filtered and sorted quests (for quest list display and map markers)
@@ -73,11 +70,6 @@ class ActivityViewModel(
         addSource(friends) { updateFriendFilterItems() }
         addSource(allQuests) { updateFriendFilterItems() }
         addSource(_selectedFriendIds) { updateFriendFilterItems() }
-    }
-
-    // Quest counts
-    val myQuestCount: LiveData<Int> = allQuests.map { quests ->
-        quests.count { it.userId == currentUserId }
     }
 
     val totalQuestCount: LiveData<Int> = filteredAndSortedQuests.map { it.size }
@@ -100,14 +92,10 @@ class ActivityViewModel(
     private fun updateBaseFilteredQuests() {
         val quests = allQuests.value ?: return
         val selectedFriends = _selectedFriendIds.value ?: emptySet()
-        val showMy = _showMyQuests.value ?: true
 
+        // Show current user's quests and selected friends' quests
         val filtered = quests.filter { quest ->
-            when {
-                quest.userId == currentUserId -> showMy
-                quest.userId in selectedFriends -> true
-                else -> false
-            }
+            quest.userId == currentUserId || quest.userId in selectedFriends
         }
 
         (baseFilteredQuests as MediatorLiveData).value = filtered
@@ -188,10 +176,6 @@ class ActivityViewModel(
         } else {
             currentSelected - friendId
         }
-    }
-
-    fun toggleMyQuests(show: Boolean) {
-        _showMyQuests.value = show
     }
 
     fun selectAllFriends() {

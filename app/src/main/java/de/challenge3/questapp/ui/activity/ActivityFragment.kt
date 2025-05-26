@@ -123,7 +123,7 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         val tagOptions = mutableListOf("All Tags").apply {
             addAll(QuestTag.values().map { it.displayName })
         }
-        val tagAdapter = createSpinnerAdapter(tagOptions.toTypedArray())
+        val tagAdapter = createThemedSpinnerAdapter(tagOptions.toTypedArray())
         binding.spinnerTagFilter.adapter = tagAdapter
 
         binding.spinnerTagFilter.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -135,11 +135,11 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         }
 
         // Setup friend filter spinner (will be populated when friends are loaded)
-        val friendAdapter = createSpinnerAdapter(arrayOf("Everyone"))
+        val friendAdapter = createThemedSpinnerAdapter(arrayOf("Everyone"))
         binding.spinnerFriendFilter.adapter = friendAdapter
 
         // Setup sort spinner
-        val sortAdapter = createSpinnerAdapter(QuestSortOption.getDisplayNames())
+        val sortAdapter = createThemedSpinnerAdapter(QuestSortOption.getDisplayNames())
         binding.spinnerSortBy.adapter = sortAdapter
 
         binding.spinnerSortBy.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -151,7 +151,7 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    private fun createSpinnerAdapter(items: Array<String>): ArrayAdapter<String> {
+    private fun createThemedSpinnerAdapter(items: Array<String>): ArrayAdapter<String> {
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, items)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         return adapter
@@ -165,11 +165,6 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         // Unified filter toggle
         binding.btnToggleUnifiedFilter.setOnClickListener {
             toggleUnifiedFilterVisibility()
-        }
-
-        // My quests toggle
-        binding.switchMyQuests.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.toggleMyQuests(isChecked)
         }
 
         // Select/Deselect all buttons
@@ -189,11 +184,13 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             // Expanded state - show full content
             binding.unifiedFilterContent.visibility = View.VISIBLE
             binding.textFiltersCollapsed.visibility = View.GONE
+            binding.expandedHeader.visibility = View.VISIBLE
             binding.btnToggleUnifiedFilter.rotation = 180f
         } else {
             // Collapsed state - show minimal header
             binding.unifiedFilterContent.visibility = View.GONE
             binding.textFiltersCollapsed.visibility = View.VISIBLE
+            binding.expandedHeader.visibility = View.GONE
             binding.btnToggleUnifiedFilter.rotation = 0f
         }
     }
@@ -220,7 +217,7 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             val friendOptions = mutableListOf("Everyone", "Me").apply {
                 addAll(friends.map { it.displayName })
             }
-            val friendAdapter = createSpinnerAdapter(friendOptions.toTypedArray())
+            val friendAdapter = createThemedSpinnerAdapter(friendOptions.toTypedArray())
             binding.spinnerFriendFilter.adapter = friendAdapter
 
             binding.spinnerFriendFilter.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -244,20 +241,6 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
 
             // Update quest count
             binding.textQuestCount.text = "${quests.size} quests"
-        }
-
-        // Observe my quest count
-        viewModel.myQuestCount.observe(viewLifecycleOwner) { count ->
-            binding.textMyQuestCount.text = "$count quests"
-        }
-
-        // Observe my quests toggle state
-        viewModel.showMyQuests.observe(viewLifecycleOwner) { show ->
-            binding.switchMyQuests.setOnCheckedChangeListener(null)
-            binding.switchMyQuests.isChecked = show
-            binding.switchMyQuests.setOnCheckedChangeListener { _, isChecked ->
-                viewModel.toggleMyQuests(isChecked)
-            }
         }
 
         // Observe sort option

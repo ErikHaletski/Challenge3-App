@@ -36,7 +36,7 @@
             android:visibility="gone"
             android:elevation="10dp"
             app:cardCornerRadius="12dp"
-            app:cardBackgroundColor="#FFFFFF"
+            app:cardBackgroundColor="?attr/colorSurface"
             android:padding="12dp">
 
             <LinearLayout
@@ -50,13 +50,14 @@
                     android:layout_height="24dp"
                     android:layout_gravity="end"
                     android:src="@android:drawable/ic_menu_close_clear_cancel"
-                    android:contentDescription="Close" />
+                    android:contentDescription="Close"
+                    app:tint="?attr/colorOnSurface" />
 
                 <TextView
                     android:id="@+id/questPopupText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="#000"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="14sp"
                     android:text="Quest Info" />
             </LinearLayout>
@@ -73,7 +74,7 @@
         android:layout_marginTop="8dp"
         app:cardCornerRadius="12dp"
         app:cardElevation="8dp"
-        app:cardBackgroundColor="#FFFFFF"
+        app:cardBackgroundColor="?attr/colorSurface"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -92,7 +93,7 @@
                 android:gravity="center_vertical"
                 android:minHeight="40dp">
 
-                <!-- Collapsed state text (rotated 90 degrees) -->
+                <!-- Collapsed state text -->
                 <TextView
                     android:id="@+id/textFiltersCollapsed"
                     android:layout_width="0dp"
@@ -101,9 +102,8 @@
                     android:text="Filters"
                     android:textSize="14sp"
                     android:textStyle="bold"
-                    android:textColor="#333333"
+                    android:textColor="?attr/colorOnSurface"
                     android:gravity="center_vertical"
-                    android:rotation="0"
                     android:layout_marginStart="8dp"
                     android:visibility="visible" />
 
@@ -122,7 +122,7 @@
                         android:text="Filters &amp; Quest List"
                         android:textSize="16sp"
                         android:textStyle="bold"
-                        android:textColor="#333333" />
+                        android:textColor="?attr/colorOnSurface" />
 
                     <TextView
                         android:id="@+id/textQuestCount"
@@ -130,7 +130,7 @@
                         android:layout_height="wrap_content"
                         android:text="0 quests"
                         android:textSize="12sp"
-                        android:textColor="#666666"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:layout_marginTop="2dp" />
 
                 </LinearLayout>
@@ -142,7 +142,8 @@
                     android:background="?android:attr/selectableItemBackgroundBorderless"
                     android:src="@drawable/ic_expand_more"
                     android:contentDescription="Toggle unified filter"
-                    android:scaleType="centerInside" />
+                    android:scaleType="centerInside"
+                    app:tint="?attr/colorOnSurface" />
 
             </LinearLayout>
 
@@ -160,7 +161,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="12dp"
-                    android:background="#FAFAFA">
+                    android:background="?attr/colorSurfaceVariant">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -168,7 +169,7 @@
                         android:text="Filter Options"
                         android:textSize="14sp"
                         android:textStyle="bold"
-                        android:textColor="#333333"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:layout_marginBottom="8dp" />
 
                     <!-- Tag Filter -->
@@ -184,7 +185,7 @@
                             android:layout_height="wrap_content"
                             android:text="Tag:"
                             android:textSize="12sp"
-                            android:textColor="#666666"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:layout_marginEnd="8dp"
                             android:minWidth="60dp" />
 
@@ -192,7 +193,8 @@
                             android:id="@+id/spinnerTagFilter"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1" />
+                            android:layout_weight="1"
+                            android:theme="@style/SpinnerTheme" />
 
                     </LinearLayout>
 
@@ -209,7 +211,7 @@
                             android:layout_height="wrap_content"
                             android:text="Friend:"
                             android:textSize="12sp"
-                            android:textColor="#666666"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:layout_marginEnd="8dp"
                             android:minWidth="60dp" />
 
@@ -217,7 +219,8 @@
                             android:id="@+id/spinnerFriendFilter"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1" />
+                            android:layout_weight="1"
+                            android:theme="@style/SpinnerTheme" />
 
                     </LinearLayout>
 
@@ -233,7 +236,7 @@
                             android:layout_height="wrap_content"
                             android:text="Sort:"
                             android:textSize="12sp"
-                            android:textColor="#666666"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:layout_marginEnd="8dp"
                             android:minWidth="60dp" />
 
@@ -241,7 +244,8 @@
                             android:id="@+id/spinnerSortBy"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1" />
+                            android:layout_weight="1"
+                            android:theme="@style/SpinnerTheme" />
 
                     </LinearLayout>
 
@@ -251,9 +255,9 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#E0E0E0" />
+                    android:background="?attr/colorOutlineVariant" />
 
-                <!-- Map Visibility Controls -->
+                <!-- Friends Selection Section -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -263,63 +267,10 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Map Visibility"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:textColor="#333333"
-                        android:layout_marginBottom="8dp" />
-
-                    <!-- My Quests Toggle -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:padding="8dp"
-                        android:background="?android:attr/selectableItemBackground">
-
-                        <androidx.appcompat.widget.SwitchCompat
-                            android:id="@+id/switchMyQuests"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checked="true" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical"
-                            android:layout_marginStart="12dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="My Quests"
-                                android:textSize="14sp"
-                                android:textStyle="bold"
-                                android:textColor="#333333" />
-
-                            <TextView
-                                android:id="@+id/textMyQuestCount"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="0 quests"
-                                android:textSize="12sp"
-                                android:textColor="#666666" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                    <!-- Friends List -->
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
                         android:text="Friends"
                         android:textSize="14sp"
                         android:textStyle="bold"
-                        android:textColor="#333333"
-                        android:layout_marginTop="8dp"
+                        android:textColor="?attr/colorOnSurface"
                         android:layout_marginBottom="8dp" />
 
                     <androidx.recyclerview.widget.RecyclerView
@@ -336,7 +287,7 @@
                         android:layout_height="wrap_content"
                         android:text="No friends added yet"
                         android:textSize="12sp"
-                        android:textColor="#999999"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:gravity="center"
                         android:padding="16dp"
                         android:visibility="gone" />
@@ -356,8 +307,7 @@
                             android:layout_marginEnd="4dp"
                             android:text="Select All"
                             android:textSize="12sp"
-                            android:background="@drawable/button_outline"
-                            android:textColor="#666666" />
+                            style="@style/Widget.Material3.Button.OutlinedButton" />
 
                         <Button
                             android:id="@+id/btnDeselectAll"
@@ -367,8 +317,7 @@
                             android:layout_marginStart="4dp"
                             android:text="Deselect All"
                             android:textSize="12sp"
-                            android:background="@drawable/button_outline"
-                            android:textColor="#666666" />
+                            style="@style/Widget.Material3.Button.OutlinedButton" />
 
                     </LinearLayout>
 
@@ -378,7 +327,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#E0E0E0" />
+                    android:background="?attr/colorOutlineVariant" />
 
                 <!-- Quest List Section -->
                 <LinearLayout
@@ -393,7 +342,7 @@
                         android:text="Quest List"
                         android:textSize="14sp"
                         android:textStyle="bold"
-                        android:textColor="#333333"
+                        android:textColor="?attr/colorOnSurface"
                         android:layout_marginBottom="8dp" />
 
                     <!-- Quest List -->
@@ -420,14 +369,14 @@
                             android:text="No quests found"
                             android:textSize="16sp"
                             android:textStyle="bold"
-                            android:textColor="#999999" />
+                            android:textColor="?attr/colorOnSurfaceVariant" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Complete some quests or adjust your filters"
                             android:textSize="14sp"
-                            android:textColor="#CCCCCC"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:gravity="center"
                             android:layout_marginTop="8dp" />
 

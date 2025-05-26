@@ -7,6 +7,7 @@
     android:layout_marginBottom="8dp"
     app:cardCornerRadius="8dp"
     app:cardElevation="2dp"
+    app:cardBackgroundColor="?attr/colorSurface"
     android:foreground="?android:attr/selectableItemBackground">
 
     <LinearLayout
@@ -68,7 +69,7 @@
             android:layout_height="wrap_content"
             android:text="Complete a challenging workout"
             android:textSize="14sp"
-            android:textColor="#333333"
+            android:textColor="?attr/colorOnSurface"
             android:layout_marginTop="8dp"
             android:maxLines="2"
             android:ellipsize="end"
@@ -96,7 +97,7 @@
                     android:text="QuestMaster"
                     android:textSize="12sp"
                     android:textStyle="bold"
-                    android:textColor="#666666"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     tools:text="QuestMaster" />
 
                 <TextView
@@ -105,7 +106,7 @@
                     android:layout_height="wrap_content"
                     android:text="2 hours ago"
                     android:textSize="11sp"
-                    android:textColor="#999999"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     tools:text="2 hours ago" />
 
             </LinearLayout>
@@ -119,7 +120,7 @@
                 android:src="@drawable/ic_location_on"
                 android:contentDescription="Show on map"
                 android:scaleType="centerInside"
-                app:tint="#666666" />
+                app:tint="?attr/colorOnSurfaceVariant" />
 
         </LinearLayout>
 

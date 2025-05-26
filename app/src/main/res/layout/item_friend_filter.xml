@@ -26,7 +26,7 @@
             android:layout_height="wrap_content"
             android:text="Friend Name"
             android:textSize="14sp"
-            android:textColor="#333333" />
+            android:textColor="?attr/colorOnSurface" />
 
         <TextView
             android:id="@+id/textFriendQuestCount"
@@ -34,7 +34,7 @@
             android:layout_height="wrap_content"
             android:text="0 quests"
             android:textSize="12sp"
-            android:textColor="#666666" />
+            android:textColor="?attr/colorOnSurfaceVariant" />
 
     </LinearLayout>
 
@@ -48,4 +48,3 @@
         android:visibility="gone" />
 
 </LinearLayout>
-

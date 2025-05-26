@@ -3,14 +3,17 @@ package de.challenge3.questapp
 import android.os.Bundle
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import de.challenge3.questapp.databinding.ActivityMainBinding
+import de.challenge3.questapp.utils.DataMigration
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
-
     private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,18 +22,25 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val navView: BottomNavigationView = binding.navView
+        setupNavigation()
+    }
 
+    private fun setupNavigation() {
+        val navView: BottomNavigationView = binding.navView
         val navController = findNavController(R.id.nav_host_fragment_activity_main)
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
+
+        // Define top level destinations
         val appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.navigation_home, R.id.navigation_achievements, R.id.navigation_activity,
-                R.id.navigation_statspage, R.id.navigation_friendlist
+                R.id.navigation_home,
+                R.id.navigation_achievements,
+                R.id.navigation_activity,
+                R.id.navigation_statspage,
+                R.id.navigation_friendlist
             )
         )
-        setupActionBarWithNavController(navController, appBarConfiguration)
+
+        //setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
     }
 }

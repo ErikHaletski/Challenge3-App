@@ -52,6 +52,12 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.androidx.legacy.support.v4)
     implementation(libs.androidx.fragment.ktx)
+    implementation(libs.maplibre.android.sdk)
+    implementation(libs.maplibre.android.annotation)
+    implementation(platform(libs.google.firebase.bom))
+    //implementation("com.google.firebase:firebase-auth-ktx")
+    implementation(libs.google.firebase.firestore.ktx)
+    implementation(libs.jetbrains.kotlinx)
     //implementation(libs.commons.compress)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -61,3 +67,11 @@ dependencies {
 configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
     ignoreFailures.set(true)
 }
+
+apply(plugin = "com.google.gms.google-services")
+
+/*
+tasks.named("check") {
+    dependsOn("ktlintCheck")
+}
+*/

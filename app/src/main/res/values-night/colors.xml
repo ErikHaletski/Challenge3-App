@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Override specific colors for dark theme if needed -->
+    <color name="surface_light">@color/surface_dark</color>
+    <color name="on_surface_light">@color/on_surface_dark</color>
+    <color name="on_surface_variant_light">@color/on_surface_variant_dark</color>
+    <color name="text_primary_light">@color/text_primary_dark</color>
+    <color name="text_secondary_light">@color/text_secondary_dark</color>
+</resources>

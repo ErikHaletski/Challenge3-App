@@ -2,21 +2,605 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_map_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     tools:context=".ui.activity.ActivityFragment">
 
-    <TextView
-        android:id="@+id/text_notifications"
-        android:layout_width="match_parent"
+    <!-- Full Screen Map -->
+    <org.maplibre.android.maps.MapView
+        android:id="@+id/mapView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Quest Popup -->
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/questPopup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:elevation="10dp"
+            app:cardCornerRadius="12dp"
+            app:cardBackgroundColor="?attr/colorSurface"
+            android:padding="12dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:id="@+id/closePopupBtn"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="end"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel"
+                    android:contentDescription="Close"
+                    app:tint="?attr/colorOnSurface" />
+
+                <TextView
+                    android:id="@+id/questPopupText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="14sp"
+                    android:text="Quest Info" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+    </FrameLayout>
+
+    <!-- Unified Filter Container (Hovering over map) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/unifiedFilterContainer"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
-        android:textAlignment="center"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="?attr/colorSurface"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Unified Filter Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="8dp"
+                android:gravity="center_vertical"
+                android:minHeight="40dp">
+
+                <!-- Collapsed state text -->
+                <TextView
+                    android:id="@+id/textFiltersCollapsed"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Filters"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="?attr/colorOnSurface"
+                    android:gravity="center_vertical"
+                    android:layout_marginStart="8dp"
+                    android:visibility="visible" />
+
+                <!-- Expanded state content -->
+                <LinearLayout
+                    android:id="@+id/expandedHeader"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Filters &amp; Quest List"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorOnSurface" />
+
+                    <TextView
+                        android:id="@+id/textQuestCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0 quests"
+                        android:textSize="12sp"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:layout_marginTop="2dp" />
+
+                </LinearLayout>
+
+                <ImageButton
+                    android:id="@+id/btnToggleUnifiedFilter"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_expand_more"
+                    android:contentDescription="Toggle unified filter"
+                    android:scaleType="centerInside"
+                    app:tint="?attr/colorOnSurface" />
+
+            </LinearLayout>
+
+            <!-- Unified Filter Content (Initially collapsed) -->
+            <LinearLayout
+                android:id="@+id/unifiedFilterContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <!-- Filter Controls Section -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="12dp"
+                    android:background="?attr/colorSurfaceVariant">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Filter Options"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:layout_marginBottom="8dp" />
+
+                    <!-- Tag Filter with Expandable Checkboxes -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginBottom="8dp">
+
+                        <!-- Tag Filter Header -->
+                        <LinearLayout
+                            android:id="@+id/tagFilterHeader"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:padding="8dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Tag:"
+                                android:textSize="12sp"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:layout_marginEnd="8dp"
+                                android:minWidth="60dp" />
+
+                            <TextView
+                                android:id="@+id/textTagFilterSummary"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="All Tags"
+                                android:textSize="12sp"
+                                android:textColor="?attr/colorOnSurface" />
+
+                            <ImageView
+                                android:id="@+id/iconTagFilterExpand"
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:src="@drawable/ic_expand_more"
+                                app:tint="?attr/colorOnSurfaceVariant" />
+
+                        </LinearLayout>
+
+                        <!-- Tag Filter Options (Expandable) -->
+                        <LinearLayout
+                            android:id="@+id/tagFilterOptions"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="gone"
+                            android:background="?attr/colorSurface"
+                            android:elevation="2dp"
+                            android:padding="8dp">
+
+                            <!-- All Tags Option -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:padding="4dp">
+
+                                <CheckBox
+                                    android:id="@+id/checkboxAllTags"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:checked="true" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="All Tags"
+                                    android:textSize="14sp"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:layout_marginStart="8dp" />
+
+                            </LinearLayout>
+
+                            <!-- Individual Tag Checkboxes -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:padding="4dp">
+
+                                <CheckBox
+                                    android:id="@+id/checkboxMight"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+
+                                <View
+                                    android:layout_width="4dp"
+                                    android:layout_height="16dp"
+                                    android:background="@color/tag_might"
+                                    android:layout_marginStart="8dp"
+                                    android:layout_marginEnd="8dp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Might"
+                                    android:textSize="14sp"
+                                    android:textColor="?attr/colorOnSurface" />
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:padding="4dp">
+
+                                <CheckBox
+                                    android:id="@+id/checkboxMind"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+
+                                <View
+                                    android:layout_width="4dp"
+                                    android:layout_height="16dp"
+                                    android:background="@color/tag_mind"
+                                    android:layout_marginStart="8dp"
+                                    android:layout_marginEnd="8dp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Mind"
+                                    android:textSize="14sp"
+                                    android:textColor="?attr/colorOnSurface" />
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:padding="4dp">
+
+                                <CheckBox
+                                    android:id="@+id/checkboxHeart"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+
+                                <View
+                                    android:layout_width="4dp"
+                                    android:layout_height="16dp"
+                                    android:background="@color/tag_heart"
+                                    android:layout_marginStart="8dp"
+                                    android:layout_marginEnd="8dp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Heart"
+                                    android:textSize="14sp"
+                                    android:textColor="?attr/colorOnSurface" />
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:padding="4dp">
+
+                                <CheckBox
+                                    android:id="@+id/checkboxSpirit"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+
+                                <View
+                                    android:layout_width="4dp"
+                                    android:layout_height="16dp"
+                                    android:background="@color/tag_spirit"
+                                    android:layout_marginStart="8dp"
+                                    android:layout_marginEnd="8dp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Spirit"
+                                    android:textSize="14sp"
+                                    android:textColor="?attr/colorOnSurface" />
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Friend Filter with Expandable Checkboxes -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginBottom="8dp">
+
+                        <!-- Friend Filter Header -->
+                        <LinearLayout
+                            android:id="@+id/friendFilterHeader"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:padding="8dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Friend:"
+                                android:textSize="12sp"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:layout_marginEnd="8dp"
+                                android:minWidth="60dp" />
+
+                            <TextView
+                                android:id="@+id/textFriendFilterSummary"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Everyone"
+                                android:textSize="12sp"
+                                android:textColor="?attr/colorOnSurface" />
+
+                            <ImageView
+                                android:id="@+id/iconFriendFilterExpand"
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:src="@drawable/ic_expand_more"
+                                app:tint="?attr/colorOnSurfaceVariant" />
+
+                        </LinearLayout>
+
+                        <!-- Friend Filter Options (Expandable) -->
+                        <LinearLayout
+                            android:id="@+id/friendFilterOptions"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="gone"
+                            android:background="?attr/colorSurface"
+                            android:elevation="2dp"
+                            android:padding="8dp">
+
+                            <!-- Everyone Option -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:padding="4dp">
+
+                                <CheckBox
+                                    android:id="@+id/checkboxEveryone"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:checked="true" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Everyone"
+                                    android:textSize="14sp"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:layout_marginStart="8dp" />
+
+                            </LinearLayout>
+
+                            <!-- Me Option -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:padding="4dp">
+
+                                <CheckBox
+                                    android:id="@+id/checkboxMe"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Me"
+                                    android:textSize="14sp"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:layout_marginStart="8dp" />
+
+                            </LinearLayout>
+
+                            <!-- Friends List -->
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/recyclerViewFriendCheckboxes"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:maxHeight="150dp"
+                                android:nestedScrollingEnabled="false" />
+
+                            <!-- No Friends Message -->
+                            <TextView
+                                android:id="@+id/textNoFriendsInFilter"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="No friends added yet"
+                                android:textSize="12sp"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:gravity="center"
+                                android:padding="8dp"
+                                android:visibility="gone" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Sort Options -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Sort:"
+                            android:textSize="12sp"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:layout_marginEnd="8dp"
+                            android:minWidth="60dp" />
+
+                        <Spinner
+                            android:id="@+id/spinnerSortBy"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:theme="@style/SpinnerTheme" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <!-- Divider -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="?attr/colorOutlineVariant" />
+
+                <!-- Quest List Section -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Quest List"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorOnSurface"
+                        android:layout_marginBottom="8dp" />
+
+                    <!-- Quest List -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recyclerViewQuestList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:maxHeight="300dp"
+                        android:clipToPadding="false" />
+
+                    <!-- Empty State -->
+                    <LinearLayout
+                        android:id="@+id/emptyStateLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="32dp"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="No quests found"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Complete some quests or adjust your filters"
+                            android:textSize="14sp"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:gravity="center"
+                            android:layout_marginTop="8dp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Location Button -->
+    <ImageButton
+        android:id="@+id/btn_center_location"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/ic_location_button_background"
+        android:contentDescription="@string/center_map_on_location"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_my_location"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:tint="@android:color/white" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

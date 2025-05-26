@@ -5,6 +5,9 @@ buildscript {
             force("org.apache.commons:commons-compress:1.27.1")
         }
     }
+    dependencies {
+        classpath("com.google.gms:google-services:4.4.0")
+    }
 }
 
 plugins {

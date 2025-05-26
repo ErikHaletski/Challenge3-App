@@ -48,6 +48,7 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
     private lateinit var questListAdapter: QuestListAdapter
     private var isUnifiedFilterExpanded = false
     private var isFriendFilterExpanded = false
+    private var isTagFilterExpanded = false
 
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -120,21 +121,6 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             adapter = questListAdapter
         }
 
-        // Setup tag filter spinner
-        val tagOptions = mutableListOf("All Tags").apply {
-            addAll(QuestTag.values().map { it.displayName })
-        }
-        val tagAdapter = createThemedSpinnerAdapter(tagOptions.toTypedArray())
-        binding.spinnerTagFilter.adapter = tagAdapter
-
-        binding.spinnerTagFilter.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val selectedTag = if (position == 0) null else QuestTag.values()[position - 1]
-                viewModel.setTagFilter(selectedTag)
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
-
         // Setup sort spinner
         val sortAdapter = createThemedSpinnerAdapter(QuestSortOption.getDisplayNames())
         binding.spinnerSortBy.adapter = sortAdapter
@@ -164,17 +150,42 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             toggleUnifiedFilterVisibility()
         }
 
+        // Tag filter toggle
+        binding.tagFilterHeader.setOnClickListener {
+            toggleTagFilterVisibility()
+        }
+
         // Friend filter toggle
         binding.friendFilterHeader.setOnClickListener {
             toggleFriendFilterVisibility()
         }
 
-        // Everyone checkbox
+        // Tag checkboxes
+        binding.checkboxAllTags.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.setAllTagsFilter(isChecked)
+        }
+
+        binding.checkboxMight.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.toggleTagFilter(QuestTag.MIGHT, isChecked)
+        }
+
+        binding.checkboxMind.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.toggleTagFilter(QuestTag.MIND, isChecked)
+        }
+
+        binding.checkboxHeart.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.toggleTagFilter(QuestTag.HEART, isChecked)
+        }
+
+        binding.checkboxSpirit.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.toggleTagFilter(QuestTag.SPIRIT, isChecked)
+        }
+
+        // Friend checkboxes
         binding.checkboxEveryone.setOnCheckedChangeListener { _, isChecked ->
             viewModel.setEveryoneFilter(isChecked)
         }
 
-        // Me checkbox
         binding.checkboxMe.setOnCheckedChangeListener { _, isChecked ->
             viewModel.setMeFilter(isChecked)
         }
@@ -196,10 +207,25 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             binding.expandedHeader.visibility = View.GONE
             binding.btnToggleUnifiedFilter.rotation = 0f
 
-            // Also collapse friend filter when main filter is collapsed
+            // Also collapse sub-filters when main filter is collapsed
+            isTagFilterExpanded = false
             isFriendFilterExpanded = false
+            binding.tagFilterOptions.visibility = View.GONE
             binding.friendFilterOptions.visibility = View.GONE
+            binding.iconTagFilterExpand.rotation = 0f
             binding.iconFriendFilterExpand.rotation = 0f
+        }
+    }
+
+    private fun toggleTagFilterVisibility() {
+        isTagFilterExpanded = !isTagFilterExpanded
+
+        if (isTagFilterExpanded) {
+            binding.tagFilterOptions.visibility = View.VISIBLE
+            binding.iconTagFilterExpand.rotation = 180f
+        } else {
+            binding.tagFilterOptions.visibility = View.GONE
+            binding.iconTagFilterExpand.rotation = 0f
         }
     }
 
@@ -232,7 +258,45 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             binding.textNoFriendsInFilter.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
         }
 
-        // Observe filter states
+        // Observe tag filter states
+        viewModel.isAllTagsSelected.observe(viewLifecycleOwner) { isSelected ->
+            binding.checkboxAllTags.setOnCheckedChangeListener(null)
+            binding.checkboxAllTags.isChecked = isSelected
+            binding.checkboxAllTags.setOnCheckedChangeListener { _, checked ->
+                viewModel.setAllTagsFilter(checked)
+            }
+        }
+
+        viewModel.selectedTags.observe(viewLifecycleOwner) { selectedTags ->
+            val isAllTags = viewModel.isAllTagsSelected.value ?: false
+
+            // Update individual tag checkboxes
+            binding.checkboxMight.setOnCheckedChangeListener(null)
+            binding.checkboxMight.isChecked = !isAllTags && QuestTag.MIGHT in selectedTags
+            binding.checkboxMight.setOnCheckedChangeListener { _, checked ->
+                viewModel.toggleTagFilter(QuestTag.MIGHT, checked)
+            }
+
+            binding.checkboxMind.setOnCheckedChangeListener(null)
+            binding.checkboxMind.isChecked = !isAllTags && QuestTag.MIND in selectedTags
+            binding.checkboxMind.setOnCheckedChangeListener { _, checked ->
+                viewModel.toggleTagFilter(QuestTag.MIND, checked)
+            }
+
+            binding.checkboxHeart.setOnCheckedChangeListener(null)
+            binding.checkboxHeart.isChecked = !isAllTags && QuestTag.HEART in selectedTags
+            binding.checkboxHeart.setOnCheckedChangeListener { _, checked ->
+                viewModel.toggleTagFilter(QuestTag.HEART, checked)
+            }
+
+            binding.checkboxSpirit.setOnCheckedChangeListener(null)
+            binding.checkboxSpirit.isChecked = !isAllTags && QuestTag.SPIRIT in selectedTags
+            binding.checkboxSpirit.setOnCheckedChangeListener { _, checked ->
+                viewModel.toggleTagFilter(QuestTag.SPIRIT, checked)
+            }
+        }
+
+        // Observe friend filter states
         viewModel.isEveryoneSelected.observe(viewLifecycleOwner) { isSelected ->
             binding.checkboxEveryone.setOnCheckedChangeListener(null)
             binding.checkboxEveryone.isChecked = isSelected
@@ -249,7 +313,11 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             }
         }
 
-        // Observe filter summary
+        // Observe filter summaries
+        viewModel.tagFilterSummary.observe(viewLifecycleOwner) { summary ->
+            binding.textTagFilterSummary.text = summary
+        }
+
         viewModel.friendFilterSummary.observe(viewLifecycleOwner) { summary ->
             binding.textFriendFilterSummary.text = summary
         }

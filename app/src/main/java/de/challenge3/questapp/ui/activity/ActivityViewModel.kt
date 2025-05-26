@@ -27,6 +27,13 @@ class ActivityViewModel(
     // Get friends list
     val friends = friendRepository.getFriends()
 
+    // Tag filter state
+    private val _isAllTagsSelected = MutableLiveData<Boolean>(true)
+    val isAllTagsSelected: LiveData<Boolean> = _isAllTagsSelected
+
+    private val _selectedTags = MutableLiveData<Set<QuestTag>>(emptySet())
+    val selectedTags: LiveData<Set<QuestTag>> = _selectedTags
+
     // Friend filter state
     private val _isEveryoneSelected = MutableLiveData<Boolean>(true)
     val isEveryoneSelected: LiveData<Boolean> = _isEveryoneSelected
@@ -35,10 +42,6 @@ class ActivityViewModel(
     val isMeSelected: LiveData<Boolean> = _isMeSelected
 
     private val _selectedFriendIds = MutableLiveData<Set<String>>(emptySet())
-
-    // Quest filters
-    private val _selectedTagFilter = MutableLiveData<QuestTag?>(null)
-    val selectedTagFilter: LiveData<QuestTag?> = _selectedTagFilter
 
     // Sort state
     private val _sortOption = MutableLiveData<QuestSortOption>(QuestSortOption.NEWEST_FIRST)
@@ -50,9 +53,16 @@ class ActivityViewModel(
         questRepository.getQuestsForUserAndFriends(currentUserId, friendIds)
     }
 
-    // Filtered quests based on friend selection
+    // Tag filtered quests
+    private val tagFilteredQuests: LiveData<List<QuestCompletion>> = MediatorLiveData<List<QuestCompletion>>().apply {
+        addSource(allQuests) { updateTagFilteredQuests() }
+        addSource(_isAllTagsSelected) { updateTagFilteredQuests() }
+        addSource(_selectedTags) { updateTagFilteredQuests() }
+    }
+
+    // Friend filtered quests
     private val friendFilteredQuests: LiveData<List<QuestCompletion>> = MediatorLiveData<List<QuestCompletion>>().apply {
-        addSource(allQuests) { updateFriendFilteredQuests() }
+        addSource(tagFilteredQuests) { updateFriendFilteredQuests() }
         addSource(_isEveryoneSelected) { updateFriendFilteredQuests() }
         addSource(_isMeSelected) { updateFriendFilteredQuests() }
         addSource(_selectedFriendIds) { updateFriendFilteredQuests() }
@@ -61,7 +71,6 @@ class ActivityViewModel(
     // Final filtered and sorted quests
     val filteredAndSortedQuests: LiveData<List<QuestCompletion>> = MediatorLiveData<List<QuestCompletion>>().apply {
         addSource(friendFilteredQuests) { updateFilteredAndSortedQuests() }
-        addSource(_selectedTagFilter) { updateFilteredAndSortedQuests() }
         addSource(_sortOption) { updateFilteredAndSortedQuests() }
         addSource(friends) { updateFilteredAndSortedQuests() }
     }
@@ -77,7 +86,12 @@ class ActivityViewModel(
         addSource(_isEveryoneSelected) { updateFriendCheckboxItems() }
     }
 
-    // Friend filter summary
+    // Filter summaries
+    val tagFilterSummary: LiveData<String> = MediatorLiveData<String>().apply {
+        addSource(_isAllTagsSelected) { updateTagFilterSummary() }
+        addSource(_selectedTags) { updateTagFilterSummary() }
+    }
+
     val friendFilterSummary: LiveData<String> = MediatorLiveData<String>().apply {
         addSource(_isEveryoneSelected) { updateFriendFilterSummary() }
         addSource(_isMeSelected) { updateFriendFilterSummary() }
@@ -93,14 +107,28 @@ class ActivityViewModel(
     private val _mapState = MutableLiveData<MapState>()
     val mapState: LiveData<MapState> = _mapState
 
-    private fun updateFriendFilteredQuests() {
+    private fun updateTagFilteredQuests() {
         val quests = allQuests.value ?: return
+        val isAllTags = _isAllTagsSelected.value ?: false
+        val selectedTags = _selectedTags.value ?: emptySet()
+
+        val filtered = when {
+            isAllTags -> quests // Show all tags
+            selectedTags.isEmpty() -> emptyList() // No tags selected
+            else -> quests.filter { it.tag in selectedTags }
+        }
+
+        (tagFilteredQuests as MediatorLiveData).value = filtered
+    }
+
+    private fun updateFriendFilteredQuests() {
+        val quests = tagFilteredQuests.value ?: return
         val isEveryone = _isEveryoneSelected.value ?: false
         val isMe = _isMeSelected.value ?: false
         val selectedFriends = _selectedFriendIds.value ?: emptySet()
 
         val filtered = when {
-            isEveryone -> quests // Show all quests
+            isEveryone -> quests // Show all friends
             else -> {
                 quests.filter { quest ->
                     (isMe && quest.userId == currentUserId) ||
@@ -114,28 +142,21 @@ class ActivityViewModel(
 
     private fun updateFilteredAndSortedQuests() {
         val quests = friendFilteredQuests.value ?: return
-        val tagFilter = _selectedTagFilter.value
         val sortBy = _sortOption.value ?: QuestSortOption.NEWEST_FIRST
         val friendsList = friends.value ?: emptyList()
 
-        // Apply tag filter
-        var filtered = quests
-        if (tagFilter != null) {
-            filtered = filtered.filter { it.tag == tagFilter }
-        }
-
         // Sort the filtered list
         val sorted = when (sortBy) {
-            QuestSortOption.NEWEST_FIRST -> filtered.sortedByDescending { it.timestamp }
-            QuestSortOption.OLDEST_FIRST -> filtered.sortedBy { it.timestamp }
-            QuestSortOption.FRIEND_NAME -> filtered.sortedWith { quest1, quest2 ->
+            QuestSortOption.NEWEST_FIRST -> quests.sortedByDescending { it.timestamp }
+            QuestSortOption.OLDEST_FIRST -> quests.sortedBy { it.timestamp }
+            QuestSortOption.FRIEND_NAME -> quests.sortedWith { quest1, quest2 ->
                 val name1 = getFriendDisplayName(quest1, friendsList)
                 val name2 = getFriendDisplayName(quest2, friendsList)
                 name1.compareTo(name2, ignoreCase = true)
             }
-            QuestSortOption.QUEST_TAG -> filtered.sortedBy { it.tag.displayName }
-            QuestSortOption.EXPERIENCE_HIGH -> filtered.sortedByDescending { it.experiencePoints }
-            QuestSortOption.EXPERIENCE_LOW -> filtered.sortedBy { it.experiencePoints }
+            QuestSortOption.QUEST_TAG -> quests.sortedBy { it.tag.displayName }
+            QuestSortOption.EXPERIENCE_HIGH -> quests.sortedByDescending { it.experiencePoints }
+            QuestSortOption.EXPERIENCE_LOW -> quests.sortedBy { it.experiencePoints }
         }
 
         (filteredAndSortedQuests as MediatorLiveData).value = sorted
@@ -157,6 +178,21 @@ class ActivityViewModel(
         }
 
         (friendCheckboxItems as MediatorLiveData).value = items
+    }
+
+    private fun updateTagFilterSummary() {
+        val isAllTags = _isAllTagsSelected.value ?: false
+        val selectedTags = _selectedTags.value ?: emptySet()
+
+        val summary = when {
+            isAllTags -> "All Tags"
+            selectedTags.isEmpty() -> "No tags selected"
+            selectedTags.size == 1 -> selectedTags.first().displayName
+            selectedTags.size == QuestTag.values().size -> "All Tags"
+            else -> "${selectedTags.size} tags selected"
+        }
+
+        (tagFilterSummary as MediatorLiveData).value = summary
     }
 
     private fun updateFriendFilterSummary() {
@@ -198,6 +234,30 @@ class ActivityViewModel(
         }
     }
 
+    // Tag filter methods
+    fun setAllTagsFilter(isSelected: Boolean) {
+        if (isSelected) {
+            // All Tags is exclusive - clear individual tag selections
+            _isAllTagsSelected.value = true
+            _selectedTags.value = emptySet()
+        } else {
+            _isAllTagsSelected.value = false
+        }
+    }
+
+    fun toggleTagFilter(tag: QuestTag, isSelected: Boolean) {
+        if (isSelected) {
+            // Can't select individual tags with All Tags
+            _isAllTagsSelected.value = false
+            val currentSelected = _selectedTags.value ?: emptySet()
+            _selectedTags.value = currentSelected + tag
+        } else {
+            val currentSelected = _selectedTags.value ?: emptySet()
+            _selectedTags.value = currentSelected - tag
+        }
+    }
+
+    // Friend filter methods
     fun setEveryoneFilter(isSelected: Boolean) {
         if (isSelected) {
             // Everyone is exclusive - clear other selections
@@ -231,10 +291,6 @@ class ActivityViewModel(
 
     fun setSortOption(option: QuestSortOption) {
         _sortOption.value = option
-    }
-
-    fun setTagFilter(tag: QuestTag?) {
-        _selectedTagFilter.value = tag
     }
 
     fun selectQuest(quest: QuestCompletion) {

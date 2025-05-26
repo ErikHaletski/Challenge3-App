@@ -172,29 +172,199 @@
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:layout_marginBottom="8dp" />
 
-                    <!-- Tag Filter -->
+                    <!-- Tag Filter with Expandable Checkboxes -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
+                        android:orientation="vertical"
                         android:layout_marginBottom="8dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
+                        <!-- Tag Filter Header -->
+                        <LinearLayout
+                            android:id="@+id/tagFilterHeader"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Tag:"
-                            android:textSize="12sp"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:layout_marginEnd="8dp"
-                            android:minWidth="60dp" />
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:padding="8dp">
 
-                        <Spinner
-                            android:id="@+id/spinnerTagFilter"
-                            android:layout_width="0dp"
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Tag:"
+                                android:textSize="12sp"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:layout_marginEnd="8dp"
+                                android:minWidth="60dp" />
+
+                            <TextView
+                                android:id="@+id/textTagFilterSummary"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="All Tags"
+                                android:textSize="12sp"
+                                android:textColor="?attr/colorOnSurface" />
+
+                            <ImageView
+                                android:id="@+id/iconTagFilterExpand"
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:src="@drawable/ic_expand_more"
+                                app:tint="?attr/colorOnSurfaceVariant" />
+
+                        </LinearLayout>
+
+                        <!-- Tag Filter Options (Expandable) -->
+                        <LinearLayout
+                            android:id="@+id/tagFilterOptions"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:theme="@style/SpinnerTheme" />
+                            android:orientation="vertical"
+                            android:visibility="gone"
+                            android:background="?attr/colorSurface"
+                            android:elevation="2dp"
+                            android:padding="8dp">
+
+                            <!-- All Tags Option -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:padding="4dp">
+
+                                <CheckBox
+                                    android:id="@+id/checkboxAllTags"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:checked="true" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="All Tags"
+                                    android:textSize="14sp"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:layout_marginStart="8dp" />
+
+                            </LinearLayout>
+
+                            <!-- Individual Tag Checkboxes -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:padding="4dp">
+
+                                <CheckBox
+                                    android:id="@+id/checkboxMight"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+
+                                <View
+                                    android:layout_width="4dp"
+                                    android:layout_height="16dp"
+                                    android:background="@color/tag_might"
+                                    android:layout_marginStart="8dp"
+                                    android:layout_marginEnd="8dp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Might"
+                                    android:textSize="14sp"
+                                    android:textColor="?attr/colorOnSurface" />
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:padding="4dp">
+
+                                <CheckBox
+                                    android:id="@+id/checkboxMind"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+
+                                <View
+                                    android:layout_width="4dp"
+                                    android:layout_height="16dp"
+                                    android:background="@color/tag_mind"
+                                    android:layout_marginStart="8dp"
+                                    android:layout_marginEnd="8dp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Mind"
+                                    android:textSize="14sp"
+                                    android:textColor="?attr/colorOnSurface" />
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:padding="4dp">
+
+                                <CheckBox
+                                    android:id="@+id/checkboxHeart"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+
+                                <View
+                                    android:layout_width="4dp"
+                                    android:layout_height="16dp"
+                                    android:background="@color/tag_heart"
+                                    android:layout_marginStart="8dp"
+                                    android:layout_marginEnd="8dp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Heart"
+                                    android:textSize="14sp"
+                                    android:textColor="?attr/colorOnSurface" />
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:padding="4dp">
+
+                                <CheckBox
+                                    android:id="@+id/checkboxSpirit"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+
+                                <View
+                                    android:layout_width="4dp"
+                                    android:layout_height="16dp"
+                                    android:background="@color/tag_spirit"
+                                    android:layout_marginStart="8dp"
+                                    android:layout_marginEnd="8dp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Spirit"
+                                    android:textSize="14sp"
+                                    android:textColor="?attr/colorOnSurface" />
+
+                            </LinearLayout>
+
+                        </LinearLayout>
 
                     </LinearLayout>
 

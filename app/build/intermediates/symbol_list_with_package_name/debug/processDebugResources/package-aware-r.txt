@@ -3496,6 +3496,7 @@ id right
 id rightToLeft
 id right_icon
 id right_side
+id rootLayout
 id rounded
 id row_index_key
 id rtl
@@ -3505,6 +3506,7 @@ id sawtooth
 id scale
 id screen
 id scroll
+id scrollAchievements
 id scrollIndicatorDown
 id scrollIndicatorUp
 id scrollView
@@ -3584,7 +3586,6 @@ id textSpacerNoButtons
 id textSpacerNoTitle
 id textStart
 id textTop
-id text_dashboard
 id text_friendlist
 id text_home
 id text_input_end_icon

@@ -30,7 +30,8 @@ id navigation_activity
 id navigation_friendlist
 id navigation_home
 id navigation_statspage
-id text_dashboard
+id rootLayout
+id scrollAchievements
 id text_friendlist
 id text_home
 id text_notifications

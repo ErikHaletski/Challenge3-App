@@ -4,7 +4,8 @@ package de.challenge3.questapp.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -20,12 +21,16 @@ public final class FragmentAchievmentsBinding implements ViewBinding {
   private final ConstraintLayout rootView;
 
   @NonNull
-  public final TextView textDashboard;
+  public final LinearLayout rootLayout;
+
+  @NonNull
+  public final ScrollView scrollAchievements;
 
   private FragmentAchievmentsBinding(@NonNull ConstraintLayout rootView,
-      @NonNull TextView textDashboard) {
+      @NonNull LinearLayout rootLayout, @NonNull ScrollView scrollAchievements) {
     this.rootView = rootView;
-    this.textDashboard = textDashboard;
+    this.rootLayout = rootLayout;
+    this.scrollAchievements = scrollAchievements;
   }
 
   @Override
@@ -55,13 +60,20 @@ public final class FragmentAchievmentsBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
-      id = R.id.text_dashboard;
-      TextView textDashboard = ViewBindings.findChildViewById(rootView, id);
-      if (textDashboard == null) {
+      id = R.id.rootLayout;
+      LinearLayout rootLayout = ViewBindings.findChildViewById(rootView, id);
+      if (rootLayout == null) {
         break missingId;
       }
 
-      return new FragmentAchievmentsBinding((ConstraintLayout) rootView, textDashboard);
+      id = R.id.scrollAchievements;
+      ScrollView scrollAchievements = ViewBindings.findChildViewById(rootView, id);
+      if (scrollAchievements == null) {
+        break missingId;
+      }
+
+      return new FragmentAchievmentsBinding((ConstraintLayout) rootView, rootLayout,
+          scrollAchievements);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

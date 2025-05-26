@@ -7,7 +7,9 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import de.challenge3.questapp.R;
@@ -20,11 +22,25 @@ public final class FragmentHomeBinding implements ViewBinding {
   private final ConstraintLayout rootView;
 
   @NonNull
-  public final TextView textHome;
+  public final CardView questContainer;
 
-  private FragmentHomeBinding(@NonNull ConstraintLayout rootView, @NonNull TextView textHome) {
+  @NonNull
+  public final TextView questCounter;
+
+  @NonNull
+  public final TextView questHeader;
+
+  @NonNull
+  public final RecyclerView questRecyclerView;
+
+  private FragmentHomeBinding(@NonNull ConstraintLayout rootView, @NonNull CardView questContainer,
+      @NonNull TextView questCounter, @NonNull TextView questHeader,
+      @NonNull RecyclerView questRecyclerView) {
     this.rootView = rootView;
-    this.textHome = textHome;
+    this.questContainer = questContainer;
+    this.questCounter = questCounter;
+    this.questHeader = questHeader;
+    this.questRecyclerView = questRecyclerView;
   }
 
   @Override
@@ -54,13 +70,32 @@ public final class FragmentHomeBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
-      id = R.id.text_home;
-      TextView textHome = ViewBindings.findChildViewById(rootView, id);
-      if (textHome == null) {
+      id = R.id.questContainer;
+      CardView questContainer = ViewBindings.findChildViewById(rootView, id);
+      if (questContainer == null) {
         break missingId;
       }
 
-      return new FragmentHomeBinding((ConstraintLayout) rootView, textHome);
+      id = R.id.questCounter;
+      TextView questCounter = ViewBindings.findChildViewById(rootView, id);
+      if (questCounter == null) {
+        break missingId;
+      }
+
+      id = R.id.questHeader;
+      TextView questHeader = ViewBindings.findChildViewById(rootView, id);
+      if (questHeader == null) {
+        break missingId;
+      }
+
+      id = R.id.questRecyclerView;
+      RecyclerView questRecyclerView = ViewBindings.findChildViewById(rootView, id);
+      if (questRecyclerView == null) {
+        break missingId;
+      }
+
+      return new FragmentHomeBinding((ConstraintLayout) rootView, questContainer, questCounter,
+          questHeader, questRecyclerView);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

@@ -3327,6 +3327,7 @@ id graph_wrap
 id group_divider
 id grouping
 id groups
+id headerTitle
 id header_title
 id hideable
 id home
@@ -3487,6 +3488,15 @@ id postLayout
 id pressed
 id progress_circular
 id progress_horizontal
+id questCheckbox
+id questContainer
+id questCounter
+id questDescription
+id questHeader
+id questRecyclerView
+id questTimer
+id questTitle
+id questXP
 id radio
 id ratio
 id rectangles
@@ -3586,7 +3596,6 @@ id textStart
 id textTop
 id text_dashboard
 id text_friendlist
-id text_home
 id text_input_end_icon
 id text_input_error_icon
 id text_input_start_icon
@@ -3774,6 +3783,8 @@ layout fragment_activity
 layout fragment_friendlist
 layout fragment_home
 layout fragment_statspage
+layout item_quest
+layout item_quest_header
 layout m3_alert_dialog
 layout m3_alert_dialog_actions
 layout m3_alert_dialog_title

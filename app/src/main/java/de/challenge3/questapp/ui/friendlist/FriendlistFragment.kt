@@ -13,9 +13,6 @@ import de.challenge3.questapp.ui.home.HomeViewModel
 class FriendlistFragment : Fragment() {
 
     private var _binding: FragmentFriendlistBinding? = null
-
-    // This property is only valid between onCreateView and
-    // onDestroyView.
     private val binding get() = _binding!!
 
     override fun onCreateView(
@@ -23,16 +20,12 @@ class FriendlistFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val homeViewModel =
-            ViewModelProvider(this).get(HomeViewModel::class.java)
-
         _binding = FragmentFriendlistBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
         val textView: TextView = binding.textFriendlist
-        homeViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
-        }
+        textView.text = "Freunde kommen bald!"
+
         return root
     }
 

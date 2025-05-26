@@ -44,9 +44,10 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
 
     private var mapManager: MapManager? = null
     private lateinit var questPopupHandler: QuestPopUpHandler
-    private lateinit var friendFilterAdapter: FriendFilterAdapter
+    private lateinit var friendCheckboxAdapter: FriendCheckboxAdapter
     private lateinit var questListAdapter: QuestListAdapter
     private var isUnifiedFilterExpanded = false
+    private var isFriendFilterExpanded = false
 
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -85,14 +86,14 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun setupUnifiedFilterUI() {
-        // Setup friend filter RecyclerView
-        friendFilterAdapter = FriendFilterAdapter { friendId, isSelected ->
-            viewModel.toggleFriendFilter(friendId, isSelected)
+        // Setup friend checkbox RecyclerView
+        friendCheckboxAdapter = FriendCheckboxAdapter { friendId, isSelected ->
+            viewModel.toggleFriendInFilter(friendId, isSelected)
         }
 
-        binding.recyclerViewFriendFilters.apply {
+        binding.recyclerViewFriendCheckboxes.apply {
             layoutManager = LinearLayoutManager(context)
-            adapter = friendFilterAdapter
+            adapter = friendCheckboxAdapter
             isNestedScrollingEnabled = false
         }
 
@@ -134,10 +135,6 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
-        // Setup friend filter spinner (will be populated when friends are loaded)
-        val friendAdapter = createThemedSpinnerAdapter(arrayOf("Everyone"))
-        binding.spinnerFriendFilter.adapter = friendAdapter
-
         // Setup sort spinner
         val sortAdapter = createThemedSpinnerAdapter(QuestSortOption.getDisplayNames())
         binding.spinnerSortBy.adapter = sortAdapter
@@ -167,13 +164,19 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             toggleUnifiedFilterVisibility()
         }
 
-        // Select/Deselect all buttons
-        binding.btnSelectAll.setOnClickListener {
-            viewModel.selectAllFriends()
+        // Friend filter toggle
+        binding.friendFilterHeader.setOnClickListener {
+            toggleFriendFilterVisibility()
         }
 
-        binding.btnDeselectAll.setOnClickListener {
-            viewModel.deselectAllFriends()
+        // Everyone checkbox
+        binding.checkboxEveryone.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.setEveryoneFilter(isChecked)
+        }
+
+        // Me checkbox
+        binding.checkboxMe.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.setMeFilter(isChecked)
         }
     }
 
@@ -192,6 +195,23 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             binding.textFiltersCollapsed.visibility = View.VISIBLE
             binding.expandedHeader.visibility = View.GONE
             binding.btnToggleUnifiedFilter.rotation = 0f
+
+            // Also collapse friend filter when main filter is collapsed
+            isFriendFilterExpanded = false
+            binding.friendFilterOptions.visibility = View.GONE
+            binding.iconFriendFilterExpand.rotation = 0f
+        }
+    }
+
+    private fun toggleFriendFilterVisibility() {
+        isFriendFilterExpanded = !isFriendFilterExpanded
+
+        if (isFriendFilterExpanded) {
+            binding.friendFilterOptions.visibility = View.VISIBLE
+            binding.iconFriendFilterExpand.rotation = 180f
+        } else {
+            binding.friendFilterOptions.visibility = View.GONE
+            binding.iconFriendFilterExpand.rotation = 0f
         }
     }
 
@@ -206,31 +226,32 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun observeViewModel() {
-        // Observe friend filter items
-        viewModel.friendFilterItems.observe(viewLifecycleOwner) { items ->
-            friendFilterAdapter.submitList(items)
-            binding.textNoFriends.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+        // Observe friend checkbox items
+        viewModel.friendCheckboxItems.observe(viewLifecycleOwner) { items ->
+            friendCheckboxAdapter.submitList(items)
+            binding.textNoFriendsInFilter.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
         }
 
-        // Observe friends for friend filter spinner
-        viewModel.friends.observe(viewLifecycleOwner) { friends ->
-            val friendOptions = mutableListOf("Everyone", "Me").apply {
-                addAll(friends.map { it.displayName })
+        // Observe filter states
+        viewModel.isEveryoneSelected.observe(viewLifecycleOwner) { isSelected ->
+            binding.checkboxEveryone.setOnCheckedChangeListener(null)
+            binding.checkboxEveryone.isChecked = isSelected
+            binding.checkboxEveryone.setOnCheckedChangeListener { _, checked ->
+                viewModel.setEveryoneFilter(checked)
             }
-            val friendAdapter = createThemedSpinnerAdapter(friendOptions.toTypedArray())
-            binding.spinnerFriendFilter.adapter = friendAdapter
+        }
 
-            binding.spinnerFriendFilter.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                    val selectedFriend = when (position) {
-                        0 -> "all"
-                        1 -> "me"
-                        else -> friends[position - 2].id
-                    }
-                    viewModel.setFriendFilter(if (selectedFriend == "all") null else selectedFriend)
-                }
-                override fun onNothingSelected(parent: AdapterView<*>?) {}
+        viewModel.isMeSelected.observe(viewLifecycleOwner) { isSelected ->
+            binding.checkboxMe.setOnCheckedChangeListener(null)
+            binding.checkboxMe.isChecked = isSelected
+            binding.checkboxMe.setOnCheckedChangeListener { _, checked ->
+                viewModel.setMeFilter(checked)
             }
+        }
+
+        // Observe filter summary
+        viewModel.friendFilterSummary.observe(viewLifecycleOwner) { summary ->
+            binding.textFriendFilterSummary.text = summary
         }
 
         // Observe unified filtered and sorted quest list

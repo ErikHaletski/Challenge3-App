@@ -198,29 +198,129 @@
 
                     </LinearLayout>
 
-                    <!-- Friend Filter -->
+                    <!-- Friend Filter with Expandable Checkboxes -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
+                        android:orientation="vertical"
                         android:layout_marginBottom="8dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
+                        <!-- Friend Filter Header -->
+                        <LinearLayout
+                            android:id="@+id/friendFilterHeader"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Friend:"
-                            android:textSize="12sp"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:layout_marginEnd="8dp"
-                            android:minWidth="60dp" />
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:padding="8dp">
 
-                        <Spinner
-                            android:id="@+id/spinnerFriendFilter"
-                            android:layout_width="0dp"
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Friend:"
+                                android:textSize="12sp"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:layout_marginEnd="8dp"
+                                android:minWidth="60dp" />
+
+                            <TextView
+                                android:id="@+id/textFriendFilterSummary"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Everyone"
+                                android:textSize="12sp"
+                                android:textColor="?attr/colorOnSurface" />
+
+                            <ImageView
+                                android:id="@+id/iconFriendFilterExpand"
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:src="@drawable/ic_expand_more"
+                                app:tint="?attr/colorOnSurfaceVariant" />
+
+                        </LinearLayout>
+
+                        <!-- Friend Filter Options (Expandable) -->
+                        <LinearLayout
+                            android:id="@+id/friendFilterOptions"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:theme="@style/SpinnerTheme" />
+                            android:orientation="vertical"
+                            android:visibility="gone"
+                            android:background="?attr/colorSurface"
+                            android:elevation="2dp"
+                            android:padding="8dp">
+
+                            <!-- Everyone Option -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:padding="4dp">
+
+                                <CheckBox
+                                    android:id="@+id/checkboxEveryone"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:checked="true" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Everyone"
+                                    android:textSize="14sp"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:layout_marginStart="8dp" />
+
+                            </LinearLayout>
+
+                            <!-- Me Option -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:padding="4dp">
+
+                                <CheckBox
+                                    android:id="@+id/checkboxMe"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Me"
+                                    android:textSize="14sp"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:layout_marginStart="8dp" />
+
+                            </LinearLayout>
+
+                            <!-- Friends List -->
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/recyclerViewFriendCheckboxes"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:maxHeight="150dp"
+                                android:nestedScrollingEnabled="false" />
+
+                            <!-- No Friends Message -->
+                            <TextView
+                                android:id="@+id/textNoFriendsInFilter"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="No friends added yet"
+                                android:textSize="12sp"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:gravity="center"
+                                android:padding="8dp"
+                                android:visibility="gone" />
+
+                        </LinearLayout>
 
                     </LinearLayout>
 
@@ -246,78 +346,6 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:theme="@style/SpinnerTheme" />
-
-                    </LinearLayout>
-
-                </LinearLayout>
-
-                <!-- Divider -->
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="?attr/colorOutlineVariant" />
-
-                <!-- Friends Selection Section -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="12dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Friends"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:textColor="?attr/colorOnSurface"
-                        android:layout_marginBottom="8dp" />
-
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/recyclerViewFriendFilters"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:maxHeight="150dp"
-                        android:nestedScrollingEnabled="false" />
-
-                    <!-- No Friends Message -->
-                    <TextView
-                        android:id="@+id/textNoFriends"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="No friends added yet"
-                        android:textSize="12sp"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:gravity="center"
-                        android:padding="16dp"
-                        android:visibility="gone" />
-
-                    <!-- Filter Actions -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginTop="8dp">
-
-                        <Button
-                            android:id="@+id/btnSelectAll"
-                            android:layout_width="0dp"
-                            android:layout_height="36dp"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="4dp"
-                            android:text="Select All"
-                            android:textSize="12sp"
-                            style="@style/Widget.Material3.Button.OutlinedButton" />
-
-                        <Button
-                            android:id="@+id/btnDeselectAll"
-                            android:layout_width="0dp"
-                            android:layout_height="36dp"
-                            android:layout_weight="1"
-                            android:layout_marginStart="4dp"
-                            android:text="Deselect All"
-                            android:textSize="12sp"
-                            style="@style/Widget.Material3.Button.OutlinedButton" />
 
                     </LinearLayout>
 

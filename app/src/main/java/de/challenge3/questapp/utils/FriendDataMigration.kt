@@ -5,32 +5,30 @@ import com.google.firebase.firestore.FirebaseFirestore
 import de.challenge3.questapp.models.Friend
 import de.challenge3.questapp.models.FriendRequest
 import de.challenge3.questapp.models.FriendshipStatus
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.util.UUID
 
 class FriendDataMigration(private val context: Context) {
 
     private val firestore = FirebaseFirestore.getInstance()
 
-    fun migrateSampleDataToFirebase() {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                // First, create sample users
-                createSampleUsers()
-
-                // Then create sample friendships and requests for the current device
-                createSampleFriendships()
-                createSampleFriendRequests()
-            } catch (e: Exception) {
-                // Handle error - you might want to log this
-                println("Friend migration failed: ${e.message}")
-            }
+    /**
+     * Migrates sample data to Firebase - THIS WRITES TO DATABASE
+     * Creates sample users, friendships, and friend requests
+     */
+    suspend fun migrateSampleDataToFirebase() {
+        try {
+            createSampleUsers()
+            createSampleFriendships()
+            createSampleFriendRequests()
+        } catch (e: Exception) {
+            println("Friend migration failed: ${e.message}")
+            throw e
         }
     }
 
+    /**
+     * Creates sample users in Firebase - THIS WRITES TO DATABASE
+     */
     private suspend fun createSampleUsers() {
         val users = getSampleUsers()
         val usersCollection = firestore.collection("users")
@@ -48,19 +46,18 @@ class FriendDataMigration(private val context: Context) {
                 "createdAt" to System.currentTimeMillis()
             )
 
-            // Use the user ID as document ID for easy lookup
             usersCollection.document(user.id).set(userData).await()
         }
     }
 
+    /**
+     * Creates sample friendships - THIS WRITES TO DATABASE
+     */
     private suspend fun createSampleFriendships() {
-        // Get the current device's user ID
         val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         val currentUserId = prefs.getString("user_id", null) ?: return
 
         val friendsCollection = firestore.collection("friends")
-
-        // Use the actual user IDs from sample data
         val sampleFriendIds = listOf(
             "user_questmaster_001",
             "user_adventure_002",
@@ -68,7 +65,7 @@ class FriendDataMigration(private val context: Context) {
         )
 
         sampleFriendIds.forEach { friendId ->
-            // Create friendship for current user
+            // Create bidirectional friendship
             val friendship1Data = mapOf(
                 "userId" to currentUserId,
                 "friendId" to friendId,
@@ -76,7 +73,6 @@ class FriendDataMigration(private val context: Context) {
             )
             friendsCollection.add(friendship1Data).await()
 
-            // Create friendship for the friend (bidirectional)
             val friendship2Data = mapOf(
                 "userId" to friendId,
                 "friendId" to currentUserId,
@@ -86,20 +82,21 @@ class FriendDataMigration(private val context: Context) {
         }
     }
 
+    /**
+     * Creates sample friend requests - THIS WRITES TO DATABASE
+     */
     private suspend fun createSampleFriendRequests() {
-        // Get the current device's user ID
         val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         val currentUserId = prefs.getString("user_id", null) ?: return
 
         val requestsCollection = firestore.collection("friend_requests")
-
         val sampleRequests = getSampleFriendRequests(currentUserId)
 
         sampleRequests.forEach { request ->
             val requestData = mapOf(
                 "fromUserId" to request.fromUserId,
                 "toUserId" to request.toUserId,
-                "status" to request.status.name,
+                "status" to "PENDING_SENT", // Store as PENDING_SENT in database
                 "timestamp" to request.timestamp
             )
             requestsCollection.add(requestData).await()
@@ -107,7 +104,6 @@ class FriendDataMigration(private val context: Context) {
     }
 
     private fun getSampleUsers() = listOf(
-        // Friends (people you're already friends with)
         Friend(
             id = "user_questmaster_001",
             username = "QuestMaster",
@@ -136,8 +132,6 @@ class FriendDataMigration(private val context: Context) {
             isOnline = true,
             completedQuestsCount = 67
         ),
-
-        // Users who will send friend requests
         Friend(
             id = "user_explorer_004",
             username = "NewExplorer",
@@ -155,32 +149,12 @@ class FriendDataMigration(private val context: Context) {
             totalExperience = 12500,
             isOnline = false,
             completedQuestsCount = 31
-        ),
-
-        // Users for search results
-        Friend(
-            id = "user_slayer_006",
-            username = "DragonSlayer",
-            email = "dragonslayer@example.com",
-            level = 20,
-            totalExperience = 25000,
-            isOnline = true,
-            completedQuestsCount = 55
-        ),
-        Friend(
-            id = "user_wizard_007",
-            username = "WiseWizard",
-            email = "wizard@example.com",
-            level = 18,
-            totalExperience = 18750,
-            isOnline = true,
-            completedQuestsCount = 48
         )
     )
 
     private fun getSampleFriendRequests(currentUserId: String) = listOf(
         FriendRequest(
-            id = "", // Firebase will generate
+            id = "",
             fromUserId = "user_explorer_004",
             toUserId = currentUserId,
             status = FriendshipStatus.PENDING_RECEIVED,

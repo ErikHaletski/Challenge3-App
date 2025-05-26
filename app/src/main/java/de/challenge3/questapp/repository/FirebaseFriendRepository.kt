@@ -6,7 +6,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.Query
 import de.challenge3.questapp.models.Friend
 import de.challenge3.questapp.models.FriendRequest
 import de.challenge3.questapp.models.FriendshipStatus
@@ -17,6 +16,7 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
 
     private val firestore = FirebaseFirestore.getInstance()
 
+    // Firebase Collections - these write to your Firestore database
     private val friendsCollection = firestore.collection("friends")
     private val friendRequestsCollection = firestore.collection("friend_requests")
     private val usersCollection = firestore.collection("users")
@@ -27,20 +27,16 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
     private var friendsListener: ListenerRegistration? = null
     private var requestsListener: ListenerRegistration? = null
 
-    // Use device ID as user identifier
-    private val currentUserId: String by lazy {
+    // Generate unique user ID for this device
+    private val _currentUserId: String by lazy {
         val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         var userId = prefs.getString("user_id", null)
 
         if (userId == null) {
-            // Generate a unique user ID for this device
             userId = "user_${UUID.randomUUID()}"
             prefs.edit().putString("user_id", userId).apply()
-
-            // Also create a user profile
             createUserProfile(userId)
         }
-
         userId
     }
 
@@ -48,12 +44,15 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
         startListening()
     }
 
+    /**
+     * Creates user profile in Firebase - THIS WRITES TO DATABASE
+     */
     private fun createUserProfile(userId: String) {
         val deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
         val userData = mapOf(
             "userId" to userId,
-            "username" to "User_${deviceId.takeLast(6)}", // Simple username based on device
-            "email" to "$userId@questapp.local", // Fake email for this device
+            "username" to "User_${deviceId.takeLast(6)}",
+            "email" to "$userId@questapp.local",
             "level" to 1,
             "totalExperience" to 0,
             "isOnline" to true,
@@ -63,23 +62,24 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
             "deviceId" to deviceId
         )
 
+        // THIS WRITES TO FIREBASE
         usersCollection.document(userId).set(userData)
     }
 
+    /**
+     * Sets up real-time listeners for friends and friend requests
+     */
     private fun startListening() {
-        val userId = currentUserId
-        println("DEBUG: Starting listeners for user: $userId")
+        val userId = _currentUserId // Updated reference
 
-        // Listen to friends
+        // Listen to friends collection
         friendsListener = friendsCollection
             .whereEqualTo("userId", userId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    println("DEBUG: Error listening to friends: ${error.message}")
+                    println("Error listening to friends: ${error.message}")
                     return@addSnapshotListener
                 }
-
-                println("DEBUG: Friends snapshot received, ${snapshot?.documents?.size ?: 0} documents")
 
                 val friendIds = snapshot?.documents?.mapNotNull { doc ->
                     doc.getString("friendId")
@@ -92,61 +92,41 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
                 }
             }
 
-        // Listen to friend requests - Enhanced debugging
-        println("DEBUG: Setting up friend requests listener for toUserId: $userId")
+        // Listen to friend requests
         requestsListener = friendRequestsCollection
             .whereEqualTo("toUserId", userId)
             .whereEqualTo("status", "PENDING_SENT")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    println("DEBUG: Error listening to friend requests: ${error.message}")
+                    println("Error listening to friend requests: ${error.message}")
                     return@addSnapshotListener
-                }
-
-                println("DEBUG: Friend requests snapshot received")
-                println("DEBUG: Snapshot size: ${snapshot?.documents?.size ?: 0}")
-
-                snapshot?.documents?.forEach { doc ->
-                    println("DEBUG: Request document: ${doc.id}")
-                    println("DEBUG: fromUserId: ${doc.getString("fromUserId")}")
-                    println("DEBUG: toUserId: ${doc.getString("toUserId")}")
-                    println("DEBUG: status: ${doc.getString("status")}")
-                    println("DEBUG: timestamp: ${doc.getLong("timestamp")}")
                 }
 
                 val requests = snapshot?.documents?.mapNotNull { document ->
                     try {
                         val fromUserId = document.getString("fromUserId") ?: return@mapNotNull null
-
-                        println("DEBUG: Processing request from $fromUserId")
-
                         FriendRequest(
                             id = document.id,
                             fromUserId = fromUserId,
                             toUserId = document.getString("toUserId") ?: "",
-                            status = FriendshipStatus.PENDING_RECEIVED, // Convert to PENDING_RECEIVED for the receiver
+                            status = FriendshipStatus.PENDING_RECEIVED,
                             timestamp = document.getLong("timestamp") ?: 0L,
                             fromUser = null
                         )
                     } catch (e: Exception) {
-                        println("DEBUG: Error parsing friend request: ${e.message}")
                         null
                     }
                 } ?: emptyList()
 
-                println("DEBUG: Found ${requests.size} friend requests for user $userId")
-
                 if (requests.isNotEmpty()) {
                     fetchRequestDetails(requests)
                 } else {
-                    println("DEBUG: No friend requests found, setting empty list")
                     _friendRequests.value = emptyList()
                 }
             }
     }
 
     private fun fetchFriendDetails(friendIds: List<String>) {
-        println("DEBUG: Fetching friend details for: $friendIds")
         usersCollection
             .whereIn("userId", friendIds)
             .get()
@@ -167,31 +147,21 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
                         null
                     }
                 }
-                println("DEBUG: Setting ${friends.size} friends")
                 _friends.value = friends
-            }
-            .addOnFailureListener { error ->
-                println("DEBUG: Error fetching friend details: ${error.message}")
             }
     }
 
     private fun fetchRequestDetails(requests: List<FriendRequest>) {
-        println("DEBUG: Fetching request details for ${requests.size} requests")
-
         if (requests.isEmpty()) {
             _friendRequests.value = emptyList()
             return
         }
 
         val fromUserIds = requests.map { it.fromUserId }
-        println("DEBUG: Looking up users: $fromUserIds")
-
         usersCollection
             .whereIn("userId", fromUserIds)
             .get()
             .addOnSuccessListener { snapshot ->
-                println("DEBUG: User lookup returned ${snapshot.documents.size} users")
-
                 val userMap = snapshot.documents.associate { document ->
                     val userId = document.getString("userId") ?: ""
                     val user = try {
@@ -206,35 +176,27 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
                             completedQuestsCount = document.getLong("completedQuestsCount")?.toInt() ?: 0
                         )
                     } catch (e: Exception) {
-                        println("DEBUG: Error parsing user: ${e.message}")
                         null
                     }
                     userId to user
                 }
 
                 val requestsWithUsers = requests.map { request ->
-                    val user = userMap[request.fromUserId]
-                    println("DEBUG: Request ${request.id} from ${request.fromUserId} -> user: ${user?.username}")
-                    request.copy(fromUser = user)
+                    request.copy(fromUser = userMap[request.fromUserId])
                 }
-
-                println("DEBUG: Setting ${requestsWithUsers.size} friend requests with user details")
                 _friendRequests.value = requestsWithUsers
-            }
-            .addOnFailureListener { error ->
-                println("DEBUG: Error fetching request details: ${error.message}")
             }
     }
 
     override fun getFriends(): LiveData<List<Friend>> = _friends
-
     override fun getFriendRequests(): LiveData<List<FriendRequest>> = _friendRequests
 
+    /**
+     * Sends friend request - THIS WRITES TO DATABASE
+     */
     override suspend fun sendFriendRequest(email: String): Result<Unit> {
         return try {
-            val currentUser = currentUserId
-
-            println("DEBUG: Sending friend request from $currentUser to $email")
+            val currentUser = _currentUserId // Updated reference
 
             // Find user by email
             val userQuery = usersCollection
@@ -248,8 +210,6 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
 
             val targetUser = userQuery.documents.first()
             val targetUserId = targetUser.getString("userId") ?: return Result.failure(Exception("Invalid user"))
-
-            println("DEBUG: Target user found: $targetUserId")
 
             if (targetUserId == currentUser) {
                 return Result.failure(Exception("Cannot send friend request to yourself"))
@@ -266,51 +226,40 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
                 return Result.failure(Exception("Already friends with this user"))
             }
 
-            // Check if request already exists (in either direction)
-            val existingRequest1 = friendRequestsCollection
+            // Check if request already exists
+            val existingRequest = friendRequestsCollection
                 .whereEqualTo("fromUserId", currentUser)
                 .whereEqualTo("toUserId", targetUserId)
                 .whereEqualTo("status", "PENDING_SENT")
                 .get()
                 .await()
 
-            val existingRequest2 = friendRequestsCollection
-                .whereEqualTo("fromUserId", targetUserId)
-                .whereEqualTo("toUserId", currentUser)
-                .whereEqualTo("status", "PENDING_SENT")
-                .get()
-                .await()
-
-            if (!existingRequest1.documents.isEmpty() || !existingRequest2.documents.isEmpty()) {
+            if (!existingRequest.documents.isEmpty()) {
                 return Result.failure(Exception("Friend request already exists"))
             }
 
-            // Create friend request
+            // Create friend request - THIS WRITES TO DATABASE
             val requestData = mapOf(
                 "fromUserId" to currentUser,
                 "toUserId" to targetUserId,
-                "status" to "PENDING_SENT", // Store as PENDING_SENT
+                "status" to "PENDING_SENT",
                 "timestamp" to System.currentTimeMillis()
             )
 
-            val docRef = friendRequestsCollection.add(requestData).await()
-            println("DEBUG: Created friend request with ID: ${docRef.id}")
-            println("DEBUG: Request data: $requestData")
-
+            friendRequestsCollection.add(requestData).await()
             Result.success(Unit)
         } catch (e: Exception) {
-            println("DEBUG: Error sending friend request: ${e.message}")
             Result.failure(e)
         }
     }
 
+    /**
+     * Accepts friend request - THIS WRITES TO DATABASE
+     */
     override suspend fun acceptFriendRequest(requestId: String): Result<Unit> {
         return try {
-            val currentUser = currentUserId
+            val currentUser = _currentUserId // Updated reference
 
-            println("DEBUG: Accepting friend request $requestId for user $currentUser")
-
-            // Get the request
             val requestDoc = friendRequestsCollection.document(requestId).get().await()
             val fromUserId = requestDoc.getString("fromUserId") ?: return Result.failure(Exception("Invalid request"))
             val toUserId = requestDoc.getString("toUserId") ?: return Result.failure(Exception("Invalid request"))
@@ -319,10 +268,9 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
                 return Result.failure(Exception("Not authorized to accept this request"))
             }
 
-            // Create friendship entries for both users
+            // Create friendship entries for both users - THIS WRITES TO DATABASE
             val batch = firestore.batch()
 
-            // Add friendship for current user
             val friendship1 = friendsCollection.document()
             batch.set(friendship1, mapOf(
                 "userId" to currentUser,
@@ -330,7 +278,6 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
                 "timestamp" to System.currentTimeMillis()
             ))
 
-            // Add friendship for the other user
             val friendship2 = friendsCollection.document()
             batch.set(friendship2, mapOf(
                 "userId" to fromUserId,
@@ -342,19 +289,19 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
             batch.delete(friendRequestsCollection.document(requestId))
 
             batch.commit().await()
-            println("DEBUG: Friend request accepted successfully")
             Result.success(Unit)
         } catch (e: Exception) {
-            println("DEBUG: Error accepting friend request: ${e.message}")
             Result.failure(e)
         }
     }
 
+    /**
+     * Declines friend request - THIS WRITES TO DATABASE
+     */
     override suspend fun declineFriendRequest(requestId: String): Result<Unit> {
         return try {
-            val currentUser = currentUserId
+            val currentUser = _currentUserId // Updated reference
 
-            // Verify the request belongs to current user
             val requestDoc = friendRequestsCollection.document(requestId).get().await()
             val toUserId = requestDoc.getString("toUserId")
 
@@ -362,23 +309,24 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
                 return Result.failure(Exception("Not authorized to decline this request"))
             }
 
+            // Delete the request - THIS WRITES TO DATABASE
             friendRequestsCollection.document(requestId).delete().await()
-            println("DEBUG: Friend request declined successfully")
             Result.success(Unit)
         } catch (e: Exception) {
-            println("DEBUG: Error declining friend request: ${e.message}")
             Result.failure(e)
         }
     }
 
+    /**
+     * Removes friend - THIS WRITES TO DATABASE
+     */
     override suspend fun removeFriend(friendId: String): Result<Unit> {
         return try {
-            val currentUser = currentUserId
+            val currentUser = _currentUserId // Updated reference
 
-            // Remove both friendship entries
+            // Remove both friendship entries - THIS WRITES TO DATABASE
             val batch = firestore.batch()
 
-            // Remove friendship from current user's list
             val friendship1Query = friendsCollection
                 .whereEqualTo("userId", currentUser)
                 .whereEqualTo("friendId", friendId)
@@ -389,7 +337,6 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
                 batch.delete(doc.reference)
             }
 
-            // Remove friendship from friend's list
             val friendship2Query = friendsCollection
                 .whereEqualTo("userId", friendId)
                 .whereEqualTo("friendId", currentUser)
@@ -409,9 +356,8 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
 
     override suspend fun searchUsers(query: String): Result<List<Friend>> {
         return try {
-            val currentUser = currentUserId
+            val currentUser = _currentUserId // Updated reference
 
-            // Search by username or email
             val usernameQuery = usersCollection
                 .whereGreaterThanOrEqualTo("username", query)
                 .whereLessThanOrEqualTo("username", query + "\uf8ff")
@@ -431,7 +377,7 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
                 .mapNotNull { document ->
                     try {
                         val userId = document.getString("userId") ?: return@mapNotNull null
-                        if (userId == currentUser) return@mapNotNull null // Don't include current user
+                        if (userId == currentUser) return@mapNotNull null
 
                         Friend(
                             id = userId,
@@ -454,31 +400,22 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
         }
     }
 
-    fun stopListening() {
+    override fun stopListening() {
         friendsListener?.remove()
         requestsListener?.remove()
     }
 
-    // Debug method to get current user ID - renamed to avoid conflict
-    fun getDebugUserId(): String = currentUserId
+    override fun getCurrentUserId(): String = _currentUserId
 
-    // Debug method to manually check for friend requests
+    // Add debug methods
+    fun getDebugUserId(): String = _currentUserId
+
     suspend fun debugCheckFriendRequests(): List<FriendRequest> {
         return try {
-            val userId = currentUserId
-            println("DEBUG: Manual check for friend requests for user: $userId")
-
             val snapshot = friendRequestsCollection
-                .whereEqualTo("toUserId", userId)
-                .whereEqualTo("status", "PENDING_SENT")
+                .whereEqualTo("toUserId", _currentUserId)
                 .get()
                 .await()
-
-            println("DEBUG: Manual check found ${snapshot.documents.size} requests")
-
-            snapshot.documents.forEach { doc ->
-                println("DEBUG: Manual - Request ${doc.id}: from=${doc.getString("fromUserId")}, to=${doc.getString("toUserId")}, status=${doc.getString("status")}")
-            }
 
             snapshot.documents.mapNotNull { document ->
                 try {
@@ -486,7 +423,7 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
                         id = document.id,
                         fromUserId = document.getString("fromUserId") ?: "",
                         toUserId = document.getString("toUserId") ?: "",
-                        status = FriendshipStatus.PENDING_RECEIVED,
+                        status = FriendshipStatus.valueOf(document.getString("status") ?: "PENDING_RECEIVED"),
                         timestamp = document.getLong("timestamp") ?: 0L,
                         fromUser = null
                     )
@@ -495,7 +432,6 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
                 }
             }
         } catch (e: Exception) {
-            println("DEBUG: Error in manual check: ${e.message}")
             emptyList()
         }
     }

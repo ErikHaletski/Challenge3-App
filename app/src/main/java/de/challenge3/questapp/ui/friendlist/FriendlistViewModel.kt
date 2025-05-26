@@ -131,7 +131,6 @@ class FriendlistViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        // Stop Firebase listeners when ViewModel is cleared
-        (friendRepository as? FirebaseFriendRepository)?.stopListening()
+        friendRepository.stopListening()
     }
 }

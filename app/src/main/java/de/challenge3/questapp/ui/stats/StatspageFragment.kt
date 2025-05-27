@@ -11,6 +11,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import de.challenge3.questapp.R
 import androidx.core.view.isGone
+import de.challenge3.questapp.logik.stats.Attributes
 
 class StatspageFragment : Fragment() {
 
@@ -18,12 +19,7 @@ class StatspageFragment : Fragment() {
     private lateinit var detailView: LinearLayout
     private lateinit var textMainStat: TextView
 
-    private lateinit var mightSubstats: LinearLayout
-    private lateinit var mindSubstats: LinearLayout
-    private lateinit var heartSubstats: LinearLayout
-    private lateinit var spiritSubstats: LinearLayout
-    private lateinit var strengthFoundation: LinearLayout
-    private lateinit var enduranceFoundation: LinearLayout
+    private var layoutMap: HashMap<String, LinearLayout> = HashMap<String, LinearLayout>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -36,56 +32,24 @@ class StatspageFragment : Fragment() {
         detailView = view.findViewById(R.id.detailView)
         textMainStat = view.findViewById(R.id.textMainStat)
 
-        mightSubstats = view.findViewById(R.id.mightSubstats)
-        mindSubstats = view.findViewById(R.id.mindSubstats)
-        heartSubstats = view.findViewById(R.id.heartSubstats)
-        spiritSubstats = view.findViewById(R.id.spiritSubstats)
-        strengthFoundation = view.findViewById(R.id.strengthFoundation)
-        enduranceFoundation = view.findViewById(R.id.enduranceFoundation)
+        for (attribute in Attributes.entries){
+            //add all layoutIDs
+            layoutMap.put(attribute.name, view.findViewById(attribute.layout))
+            //add proper function to button depending on attType
+            when (attribute.attType) {
+                1 -> view.findViewById<Button>(attribute.button).setOnClickListener {
+                    showSubstats(attribute.name)
+                }
+                2 -> view.findViewById<Button>(attribute.button).setOnClickListener {
+                    toggleFoundation(attribute.name)
+                }
+            }
 
-        // Main stat buttons
-        view.findViewById<Button>(R.id.buttonMight).setOnClickListener {
-            showSubstats("Might")
-        }
-        view.findViewById<Button>(R.id.buttonMind).setOnClickListener {
-            showSubstats("Mind")
-        }
-        view.findViewById<Button>(R.id.buttonHeart).setOnClickListener {
-            showSubstats("Heart")
-        }
-        view.findViewById<Button>(R.id.buttonSpirit).setOnClickListener {
-            showSubstats("Spirit")
         }
 
         // Back button
         view.findViewById<Button>(R.id.buttonBack).setOnClickListener {
             showMainStats()
-        }
-
-        // Substat buttons (optional: replace with your own logic)
-        view.findViewById<Button>(R.id.buttonStrength).setOnClickListener {
-            toggleFoundation("Strength")
-        }
-        view.findViewById<Button>(R.id.buttonEndurance).setOnClickListener {
-            toggleFoundation("Endurance")
-        }
-        view.findViewById<Button>(R.id.buttonIntelligence).setOnClickListener {
-            showSubstats("Intelligence")
-        }
-        view.findViewById<Button>(R.id.buttonWisdom).setOnClickListener {
-            showSubstats("Wisdom")
-        }
-        view.findViewById<Button>(R.id.buttonCompassion).setOnClickListener {
-            showSubstats("Compassion")
-        }
-        view.findViewById<Button>(R.id.buttonCharisma).setOnClickListener {
-            showSubstats("Charisma")
-        }
-        view.findViewById<Button>(R.id.buttonWillpower).setOnClickListener {
-            showSubstats("Willpower")
-        }
-        view.findViewById<Button>(R.id.buttonResilience).setOnClickListener {
-            showSubstats("Resilience")
         }
 
         return view
@@ -97,25 +61,22 @@ class StatspageFragment : Fragment() {
         textMainStat.text = statName
 
         // Hide all substat groups
-        mightSubstats.visibility = View.GONE
-        mindSubstats.visibility = View.GONE
-        heartSubstats.visibility = View.GONE
-        spiritSubstats.visibility = View.GONE
-
-        // Show only the relevant one
-        when (statName) {
-            "Might" -> mightSubstats.visibility = View.VISIBLE
-            "Mind" -> mindSubstats.visibility = View.VISIBLE
-            "Heart" -> heartSubstats.visibility = View.VISIBLE
-            "Spirit" -> spiritSubstats.visibility = View.VISIBLE
+        for(attribute in Attributes.entries) {
+            if (attribute.attType == 1) {
+                layoutMap[attribute.name]?.visibility = View.GONE
+            }
         }
+
+        //Show relevant group
+        layoutMap[statName]?.visibility = View.VISIBLE
     }
 
     private fun toggleFoundation(statName: String) {
-        when (statName) {
-            "Strength" -> if (strengthFoundation.isGone) {strengthFoundation.visibility = View.VISIBLE} else {strengthFoundation.visibility = View.GONE}
-            "Endurance" -> if (enduranceFoundation.isGone) {enduranceFoundation.visibility = View.VISIBLE} else {enduranceFoundation.visibility = View.GONE}
-            else -> null
+        //toggle clicked group
+        if (layoutMap[statName]?.isGone == true) {
+            layoutMap[statName]?.visibility = View.VISIBLE
+        } else {
+            layoutMap[statName]?.visibility = View.GONE
         }
     }
 

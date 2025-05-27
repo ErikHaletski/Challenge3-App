@@ -50,7 +50,8 @@ class AchievmentsFragment : Fragment() {
                     "Stärke" -> Color.RED
                     "Ausdauer" -> Color.parseColor("#4CAF50")
                     "Allgemein" -> Color.DKGRAY
-                    "Completion" -> Color.BLUE
+                    "Completion" -> Color.MAGENTA
+                    "Intelligenz" -> Color.BLUE
                     else -> Color.BLACK
                 }
 

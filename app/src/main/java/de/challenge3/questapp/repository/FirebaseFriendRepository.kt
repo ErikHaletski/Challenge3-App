@@ -12,6 +12,9 @@ import de.challenge3.questapp.models.FriendshipStatus
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
+// handels all friend-related data operations
+// -> like: send/accept/decline friend request, search for users, manage friendships
+// -> like: listening to friend updates, generating user IDs based on device ID
 class FirebaseFriendRepository(private val context: Context) : FriendRepository {
 
     private val firestore = FirebaseFirestore.getInstance()
@@ -26,7 +29,9 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
     private var requestsListener: ListenerRegistration? = null
 
     // Generate user ID based on device ID for consistency
+    // by lazy = property initialized only once
     private val _currentUserId: String by lazy {
+        // loads persistent local storage (key-value paris)
         val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         var userId = prefs.getString("user_id", null)
 
@@ -45,6 +50,7 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
     }
 
     private fun createUserProfile(userId: String) {
+        // get the device id from android settings.secure api (device id = 64bit hex string)
         val deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
         val userData = mapOf(
             "userId" to userId,

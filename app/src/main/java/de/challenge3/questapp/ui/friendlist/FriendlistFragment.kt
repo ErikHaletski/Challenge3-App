@@ -16,6 +16,8 @@ import de.challenge3.questapp.databinding.FragmentFriendlistBinding
 import de.challenge3.questapp.repository.FirebaseFriendRepository
 import kotlinx.coroutines.launch
 
+// friend management screen
+// -> displays freinds, shows friend requests, provides user search, handels friend request actions
 class FriendlistFragment : Fragment() {
 
     private var _binding: FragmentFriendlistBinding? = null

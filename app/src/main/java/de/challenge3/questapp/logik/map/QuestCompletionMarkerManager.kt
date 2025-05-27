@@ -9,6 +9,8 @@ import org.maplibre.android.plugins.annotation.Symbol
 import org.maplibre.android.plugins.annotation.SymbolManager
 import org.maplibre.android.plugins.annotation.SymbolOptions
 
+// manages map markers for completed quests
+// creates markers at locations, handles makrer click events, updates markers, shows quest popups on marker clicks
 class QuestCompletionMarkerManager(
     private val map: MapLibreMap,
     private val mapView: MapView,

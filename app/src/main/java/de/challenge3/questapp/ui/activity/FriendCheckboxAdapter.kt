@@ -14,6 +14,8 @@ data class FriendCheckboxItem(
     val questCount: Int
 )
 
+
+// displays friends in filter witch checkboxes for filtering, handles checkbox state
 class FriendCheckboxAdapter(
     private val onFriendToggle: (String, Boolean) -> Unit
 ) : ListAdapter<FriendCheckboxItem, FriendCheckboxAdapter.CheckboxViewHolder>(CheckboxDiffCallback()) {

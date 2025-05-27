@@ -19,6 +19,8 @@ import org.maplibre.android.location.LocationComponentActivationOptions
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.Style
 
+// implements map fucntionality
+// initializes map, handles location permissions, sets up quest markers, manages map click events
 class MapManager(
     private val fragment: Fragment,
     private val map: MapLibreMap,

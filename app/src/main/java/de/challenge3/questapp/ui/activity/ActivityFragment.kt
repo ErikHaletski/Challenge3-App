@@ -25,6 +25,8 @@ import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.OnMapReadyCallback
 
+// main map and quest list screen
+// -> displays map with markers, shows filtering UI, manages location permissions
 class ActivityFragment : Fragment(), OnMapReadyCallback {
 
     private var _binding: FragmentActivityBinding? = null

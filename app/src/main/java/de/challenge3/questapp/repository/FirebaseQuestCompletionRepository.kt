@@ -10,6 +10,9 @@ import de.challenge3.questapp.ui.home.QuestTag
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
+// handels all quest completion data
+// -> like: storing completed quests with location data, retrieving quests for users/friends
+// -> like: real-time updates, filtering/querying
 class FirebaseQuestCompletionRepository : QuestCompletionRepository {
 
     private val firestore = FirebaseFirestore.getInstance()

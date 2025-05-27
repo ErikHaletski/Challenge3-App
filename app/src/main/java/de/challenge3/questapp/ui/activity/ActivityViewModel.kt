@@ -16,6 +16,14 @@ import de.challenge3.questapp.models.Friend
 import org.maplibre.android.geometry.LatLng
 import android.content.Context
 
+
+// manages activity/map screen state
+// -> like: tag filtering, friend filtering, sorting, map state (location permissions, current location)
+// -> like: quest selection (for popup display)
+// important methods:   setAllTagsFilter()      -> toggles showing all quests tags
+//                      toggleFriendInFilter()  -> add/remove friends from filter
+//                      setSortOption()         -> change sorting method
+//                      selectQuest()           -> select quest for detailed view
 class ActivityViewModel(
     private val context: Context,
     private val questCompletionRepository: QuestCompletionRepository = FirebaseQuestCompletionRepository(),

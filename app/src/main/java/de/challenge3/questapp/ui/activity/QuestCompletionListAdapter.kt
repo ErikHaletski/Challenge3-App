@@ -13,6 +13,8 @@ import de.challenge3.questapp.ui.home.QuestTag
 import java.text.SimpleDateFormat
 import java.util.*
 
+//displays list of completed quests, shows quest detailes, color-codes by quest tag
+// provides "show on map functionality", handles quest selection
 class QuestCompletionListAdapter(
     private val onQuestClick: (QuestCompletion) -> Unit,
     private val onShowOnMapClick: (QuestCompletion) -> Unit,

@@ -50,7 +50,8 @@ class AchievmentsFragment : Fragment() {
                     "Stärke" -> Color.RED
                     "Ausdauer" -> Color.parseColor("#4CAF50")
                     "Allgemein" -> Color.DKGRAY
-                    "Completion" -> Color.BLUE
+                    "Completion" -> Color.MAGENTA
+                    "Intelligenz" -> Color.BLUE
                     else -> Color.BLACK
                 }
 
@@ -154,13 +155,9 @@ class AchievmentsFragment : Fragment() {
 
         return root
     }
-<<<<<<< HEAD
-    val text: LiveData<String> = _text
-=======
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
->>>>>>> feature/achievements
 }

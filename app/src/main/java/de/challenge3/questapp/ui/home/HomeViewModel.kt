@@ -3,6 +3,9 @@ package de.challenge3.questapp.ui.home
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import de.challenge3.questapp.ui.quest.DailyQuestPool
+import de.challenge3.questapp.ui.quest.Quest
+import de.challenge3.questapp.ui.quest.Quest.QuestType
 
 class HomeViewModel : ViewModel() {
 

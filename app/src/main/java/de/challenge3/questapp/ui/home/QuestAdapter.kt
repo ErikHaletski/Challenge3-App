@@ -1,6 +1,6 @@
-//Adapter für den Recyclerview
+// Adapter für den Recyclerview
 // Verbindet die Daten (ViewModel) mit der UI (Fragment).
-//Verwaltet, wie Quests dargestellt und interaktiv gemacht werd
+// Verwaltet, wie Quests dargestellt und interaktiv gemacht werd
 
 package de.challenge3.questapp.ui.home
 

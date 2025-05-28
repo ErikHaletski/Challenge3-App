@@ -44,7 +44,6 @@ class StatspageFragment : Fragment() {
                     toggleFoundation(attribute.name)
                 }
             }
-
         }
 
         // Back button

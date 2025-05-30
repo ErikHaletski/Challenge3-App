@@ -1,17 +1,14 @@
 package de.challenge3.questapp.logik.map
 
-import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Context
-import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
-import androidx.core.app.ActivityCompat
 import androidx.core.graphics.scale
 import androidx.fragment.app.Fragment
 import de.challenge3.questapp.R
 import de.challenge3.questapp.ui.activity.ActivityFragment
 import de.challenge3.questapp.ui.activity.ActivityViewModel
 import de.challenge3.questapp.ui.activity.MapState
+import de.challenge3.questapp.utils.LocationHelper
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
@@ -19,13 +16,14 @@ import org.maplibre.android.location.LocationComponentActivationOptions
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.Style
 
-// implements map fucntionality
+// implements map functionality
 // initializes map, handles location permissions, sets up quest markers, manages map click events
 class MapManager(
     private val fragment: Fragment,
     private val map: MapLibreMap,
     private val viewModel: ActivityViewModel,
     private val markerController: MarkerController,
+    private val locationHelper: LocationHelper,
     private val onMapClick: () -> Unit
 ) : MapController {
 
@@ -96,15 +94,14 @@ class MapManager(
             .build()
         map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
     }
+
     @SuppressLint("MissingPermission")
     override fun enableUserLocation(): Boolean {
-        val context = fragment.requireContext()
-
-        if (!hasLocationPermissions(context)) return false
+        if (!locationHelper.hasLocationPermissions()) return false
 
         val locationComponent = map.locationComponent
         val activationOptions = LocationComponentActivationOptions
-            .builder(context, map.style!!)
+            .builder(fragment.requireContext(), map.style!!)
             .useDefaultLocationEngine(true)
             .build()
 
@@ -116,11 +113,6 @@ class MapManager(
         }
 
         return true
-    }
-
-    private fun hasLocationPermissions(context: Context): Boolean {
-        return ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
-                ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
     }
 
     override fun onDestroy() {

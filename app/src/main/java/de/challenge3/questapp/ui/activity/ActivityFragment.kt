@@ -1,13 +1,11 @@
 package de.challenge3.questapp.ui.activity
 
-import android.Manifest
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
@@ -19,6 +17,7 @@ import de.challenge3.questapp.logik.map.QuestCompletionMarkerManager
 import de.challenge3.questapp.logik.map.QuestCompletionPopUpHandler
 import de.challenge3.questapp.repository.FirebaseFriendRepository
 import de.challenge3.questapp.ui.home.QuestTag
+import de.challenge3.questapp.utils.LocationHelper
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.maps.MapLibreMap
@@ -34,6 +33,7 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var mapView: MapView
     private lateinit var mapLibreMap: MapLibreMap
+    private lateinit var locationHelper: LocationHelper
 
     private val viewModel: ActivityViewModel by viewModels {
         object : ViewModelProvider.Factory {
@@ -52,25 +52,8 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
     private var isFriendFilterExpanded = false
     private var isTagFilterExpanded = false
 
-    private val locationPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val fineLocationGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
-        val coarseLocationGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-
-        if (fineLocationGranted || coarseLocationGranted) {
-            mapManager?.enableUserLocation()
-        }
-    }
-
-    fun requestLocationPermission() {
-        locationPermissionLauncher.launch(
-            arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            )
-        )
-    }
+    // Permission Launcher mit LocationHelper
+    private lateinit var locationPermissionLauncher: androidx.activity.result.ActivityResultLauncher<Array<String>>
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -80,12 +63,26 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
 
+        // LocationHelper initialisieren
+        locationHelper = LocationHelper(requireContext())
+
+        // Permission Launcher erstellen
+        locationPermissionLauncher = locationHelper.createPermissionLauncher(this) { granted ->
+            if (granted && mapManager != null) {
+                mapManager?.enableUserLocation()
+            }
+        }
+
         questCompletionPopupHandler = QuestCompletionPopUpHandler(binding)
         setupUnifiedFilterUI()
         setupClickListeners()
         observeViewModel()
 
         return binding.root
+    }
+
+    fun requestLocationPermission() {
+        locationHelper.requestPermissionsIfNeeded(locationPermissionLauncher)
     }
 
     private fun setupUnifiedFilterUI() {
@@ -367,6 +364,7 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             map = mapLibreMap,
             viewModel = viewModel,
             markerController = markerManager,
+            locationHelper = locationHelper,
             onMapClick = {
                 questCompletionPopupHandler.hidePopup()
                 viewModel.clearSelectedQuest()

@@ -48,18 +48,6 @@ class QuestCompletionMarkerManager(
                 .withLatLng(quest.location)
                 .withIconImage(iconId)
                 .withIconSize(1.0f)
-                // Text-Label für den Titel hinzufügen
-                .withTextField(quest.displayTitle)
-                .withTextSize(13f)                      // Optimale Größe für Lesbarkeit
-                .withTextColor(textColor)               // Deine Quest-Tag-Farben
-                .withTextHaloColor("#000000")           // Schwarzer Halo für Kontrast
-                .withTextHaloWidth(2.0f)                // Optimale Halo-Breite
-                .withTextOffset(arrayOf(0f, -2.2f))     // Text über dem Icon
-                .withTextAnchor("bottom")               // Text unter dem Anchor-Punkt
-                .withTextJustify("center")              // Zentrierter Text
-                .withTextMaxWidth(12f)                  // Mehr Platz für längere Titel
-                .withTextFont(arrayOf("Roboto Medium", "Arial Unicode MS Bold"))
-                .withTextLetterSpacing(0.05f)           // Leicht erhöhter Buchstabenabstand
         )
         symbol?.let { questSymbolMap[it] = quest }
     }

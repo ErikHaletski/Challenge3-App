@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">QuestApp</string>
+    <string name="title_home">Home</string>
+    <string name="title_achievements">Achievements</string>
+    <string name="title_friendlist">Friends</string>
+    <string name="title_activity">Activity</string>
+    <string name="title_statspage">Stats</string>
+    <string name="center_map_on_location">Center map on my location</string>
+</resources>

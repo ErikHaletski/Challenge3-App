@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Spinner theme for dark mode compatibility -->
+    <style name="SpinnerTheme" parent="Theme.Material3.DayNight">
+        <item name="android:textColorPrimary">?attr/colorOnSurface</item>
+        <item name="android:textColorSecondary">?attr/colorOnSurfaceVariant</item>
+        <item name="android:colorBackground">?attr/colorSurface</item>
+        <item name="android:popupBackground">?attr/colorSurface</item>
+    </style>
+</resources>

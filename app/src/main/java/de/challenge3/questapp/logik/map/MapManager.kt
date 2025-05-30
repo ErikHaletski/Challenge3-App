@@ -16,8 +16,6 @@ import org.maplibre.android.location.LocationComponentActivationOptions
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.Style
 
-// implements map functionality
-// initializes map, handles location permissions, sets up quest markers, manages map click events
 class MapManager(
     private val fragment: Fragment,
     private val map: MapLibreMap,
@@ -34,14 +32,17 @@ class MapManager(
 
         val styleUrl = "https://api.maptiler.com/maps/streets/style.json?key=aOkQL7uU6Vrzota1sb7B"
         map.setStyle(styleUrl) { style ->
-            setupMapStyle(style)
-            setupLocationIfPermitted()
-            setupMarkers(style)
-            setupMapClickListener()
-
+            setupMapComponents(style)
             isInitialized = true
             onMapReady()
         }
+    }
+
+    private fun setupMapComponents(style: Style) {
+        setupMapStyle(style)
+        setupLocationIfPermitted()
+        setupMarkers(style)
+        setupMapClickListener()
     }
 
     private fun setupMapStyle(style: Style) {
@@ -51,8 +52,7 @@ class MapManager(
     }
 
     private fun setupLocationIfPermitted() {
-        val hasPermission = enableUserLocation()
-        if (!hasPermission) {
+        if (!enableUserLocation()) {
             (fragment as? ActivityFragment)?.requestLocationPermission()
         }
     }
@@ -77,11 +77,12 @@ class MapManager(
         if (!locationComponent.isLocationComponentEnabled) return
 
         locationComponent.lastKnownLocation?.let { location ->
-            animateToLocation(LatLng(location.latitude, location.longitude), 14.0)
+            val latLng = LatLng(location.latitude, location.longitude)
+            animateToLocation(latLng, 14.0)
             viewModel.updateMapState(
                 MapState(
                     isLocationEnabled = true,
-                    currentLocation = LatLng(location.latitude, location.longitude)
+                    currentLocation = latLng
                 )
             )
         }

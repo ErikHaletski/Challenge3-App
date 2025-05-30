@@ -24,8 +24,6 @@ import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.OnMapReadyCallback
 
-// main map and quest list screen
-// -> displays map with markers, shows filtering UI, manages location permissions
 class ActivityFragment : Fragment(), OnMapReadyCallback {
 
     private var _binding: FragmentActivityBinding? = null
@@ -48,11 +46,8 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
     private lateinit var questCompletionPopupHandler: QuestCompletionPopUpHandler
     private lateinit var friendCheckboxAdapter: FriendCheckboxAdapter
     private lateinit var questCompletionListAdapter: QuestCompletionListAdapter
-    private var isUnifiedFilterExpanded = false
-    private var isFriendFilterExpanded = false
-    private var isTagFilterExpanded = false
 
-    // Permission Launcher mit LocationHelper
+    private var filterStates = FilterStates()
     private lateinit var locationPermissionLauncher: androidx.activity.result.ActivityResultLauncher<Array<String>>
 
     override fun onCreateView(
@@ -63,18 +58,13 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
 
-        // LocationHelper initialisieren
         locationHelper = LocationHelper(requireContext())
-
-        // Permission Launcher erstellen
         locationPermissionLauncher = locationHelper.createPermissionLauncher(this) { granted ->
-            if (granted && mapManager != null) {
-                mapManager?.enableUserLocation()
-            }
+            if (granted) mapManager?.enableUserLocation()
         }
 
         questCompletionPopupHandler = QuestCompletionPopUpHandler(binding)
-        setupUnifiedFilterUI()
+        setupUI()
         setupClickListeners()
         observeViewModel()
 
@@ -85,8 +75,12 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         locationHelper.requestPermissionsIfNeeded(locationPermissionLauncher)
     }
 
-    private fun setupUnifiedFilterUI() {
-        // Setup friend checkbox RecyclerView
+    private fun setupUI() {
+        setupRecyclerViews()
+        setupSortSpinner()
+    }
+
+    private fun setupRecyclerViews() {
         friendCheckboxAdapter = FriendCheckboxAdapter { friendId, isSelected ->
             viewModel.toggleFriendInFilter(friendId, isSelected)
         }
@@ -97,15 +91,14 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             isNestedScrollingEnabled = false
         }
 
-        // Get current user ID from repository
         val currentUserId = FirebaseFriendRepository(requireContext()).getCurrentUserId()
-
-        // Setup unified quest list adapter
         questCompletionListAdapter = QuestCompletionListAdapter(
             onQuestClick = { quest ->
                 viewModel.selectQuest(quest)
-                questCompletionPopupHandler.showPopup(viewModel.getQuestInfoText(quest),
-                    android.graphics.PointF(binding.mapView.width / 2f, binding.mapView.height / 2f))
+                questCompletionPopupHandler.showPopup(
+                    viewModel.getQuestInfoText(quest),
+                    android.graphics.PointF(binding.mapView.width / 2f, binding.mapView.height / 2f)
+                )
                 animateToQuest(quest)
             },
             onShowOnMapClick = { quest ->
@@ -119,24 +112,24 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             layoutManager = LinearLayoutManager(context)
             adapter = questCompletionListAdapter
         }
+    }
 
-        // Setup sort spinner
-        val sortAdapter = createThemedSpinnerAdapter(QuestCompletionSortOption.getDisplayNames())
+    private fun setupSortSpinner() {
+        val sortAdapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_spinner_item,
+            QuestCompletionSortOption.getDisplayNames()
+        ).apply {
+            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        }
+
         binding.spinnerSortBy.adapter = sortAdapter
-
         binding.spinnerSortBy.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val selectedOption = QuestCompletionSortOption.values()[position]
-                viewModel.setSortOption(selectedOption)
+                viewModel.setSortOption(QuestCompletionSortOption.values()[position])
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
-    }
-
-    private fun createThemedSpinnerAdapter(items: Array<String>): ArrayAdapter<String> {
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, items)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        return adapter
     }
 
     private fun setupClickListeners() {
@@ -144,43 +137,46 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             mapManager?.centerOnUserLocation()
         }
 
-        // Unified filter toggle
+        setupFilterClickListeners()
+        setupTagCheckboxListeners()
+        setupFriendCheckboxListeners()
+    }
+
+    private fun setupFilterClickListeners() {
         binding.btnToggleUnifiedFilter.setOnClickListener {
-            toggleUnifiedFilterVisibility()
+            filterStates.toggleUnifiedFilter()
+            updateFilterVisibility()
         }
 
-        // Tag filter toggle
         binding.tagFilterHeader.setOnClickListener {
-            toggleTagFilterVisibility()
+            filterStates.toggleTagFilter()
+            updateFilterVisibility()
         }
 
-        // Friend filter toggle
         binding.friendFilterHeader.setOnClickListener {
-            toggleFriendFilterVisibility()
+            filterStates.toggleFriendFilter()
+            updateFilterVisibility()
         }
+    }
 
-        // Tag checkboxes
+    private fun setupTagCheckboxListeners() {
         binding.checkboxAllTags.setOnCheckedChangeListener { _, isChecked ->
             viewModel.setAllTagsFilter(isChecked)
         }
 
-        binding.checkboxMight.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.toggleTagFilter(QuestTag.MIGHT, isChecked)
+        mapOf(
+            binding.checkboxMight to QuestTag.MIGHT,
+            binding.checkboxMind to QuestTag.MIND,
+            binding.checkboxHeart to QuestTag.HEART,
+            binding.checkboxSpirit to QuestTag.SPIRIT
+        ).forEach { (checkbox, tag) ->
+            checkbox.setOnCheckedChangeListener { _, isChecked ->
+                viewModel.toggleTagFilter(tag, isChecked)
+            }
         }
+    }
 
-        binding.checkboxMind.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.toggleTagFilter(QuestTag.MIND, isChecked)
-        }
-
-        binding.checkboxHeart.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.toggleTagFilter(QuestTag.HEART, isChecked)
-        }
-
-        binding.checkboxSpirit.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.toggleTagFilter(QuestTag.SPIRIT, isChecked)
-        }
-
-        // Friend checkboxes
+    private fun setupFriendCheckboxListeners() {
         binding.checkboxEveryone.setOnCheckedChangeListener { _, isChecked ->
             viewModel.setEveryoneFilter(isChecked)
         }
@@ -190,53 +186,26 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    private fun toggleUnifiedFilterVisibility() {
-        isUnifiedFilterExpanded = !isUnifiedFilterExpanded
+    private fun updateFilterVisibility() {
+        with(binding) {
+            if (filterStates.isUnifiedFilterExpanded) {
+                unifiedFilterContent.visibility = View.VISIBLE
+                textFiltersCollapsed.visibility = View.GONE
+                expandedHeader.visibility = View.VISIBLE
+                btnToggleUnifiedFilter.rotation = 180f
+            } else {
+                unifiedFilterContent.visibility = View.GONE
+                textFiltersCollapsed.visibility = View.VISIBLE
+                expandedHeader.visibility = View.GONE
+                btnToggleUnifiedFilter.rotation = 0f
+                filterStates.collapseSubFilters()
+            }
 
-        if (isUnifiedFilterExpanded) {
-            // Expanded state - show full content
-            binding.unifiedFilterContent.visibility = View.VISIBLE
-            binding.textFiltersCollapsed.visibility = View.GONE
-            binding.expandedHeader.visibility = View.VISIBLE
-            binding.btnToggleUnifiedFilter.rotation = 180f
-        } else {
-            // Collapsed state - show minimal header
-            binding.unifiedFilterContent.visibility = View.GONE
-            binding.textFiltersCollapsed.visibility = View.VISIBLE
-            binding.expandedHeader.visibility = View.GONE
-            binding.btnToggleUnifiedFilter.rotation = 0f
+            tagFilterOptions.visibility = if (filterStates.isTagFilterExpanded) View.VISIBLE else View.GONE
+            iconTagFilterExpand.rotation = if (filterStates.isTagFilterExpanded) 180f else 0f
 
-            // Also collapse sub-filters when main filter is collapsed
-            isTagFilterExpanded = false
-            isFriendFilterExpanded = false
-            binding.tagFilterOptions.visibility = View.GONE
-            binding.friendFilterOptions.visibility = View.GONE
-            binding.iconTagFilterExpand.rotation = 0f
-            binding.iconFriendFilterExpand.rotation = 0f
-        }
-    }
-
-    private fun toggleTagFilterVisibility() {
-        isTagFilterExpanded = !isTagFilterExpanded
-
-        if (isTagFilterExpanded) {
-            binding.tagFilterOptions.visibility = View.VISIBLE
-            binding.iconTagFilterExpand.rotation = 180f
-        } else {
-            binding.tagFilterOptions.visibility = View.GONE
-            binding.iconTagFilterExpand.rotation = 0f
-        }
-    }
-
-    private fun toggleFriendFilterVisibility() {
-        isFriendFilterExpanded = !isFriendFilterExpanded
-
-        if (isFriendFilterExpanded) {
-            binding.friendFilterOptions.visibility = View.VISIBLE
-            binding.iconFriendFilterExpand.rotation = 180f
-        } else {
-            binding.friendFilterOptions.visibility = View.GONE
-            binding.iconFriendFilterExpand.rotation = 0f
+            friendFilterOptions.visibility = if (filterStates.isFriendFilterExpanded) View.VISIBLE else View.GONE
+            iconFriendFilterExpand.rotation = if (filterStates.isFriendFilterExpanded) 180f else 0f
         }
     }
 
@@ -251,13 +220,17 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun observeViewModel() {
-        // Observe friend checkbox items
         viewModel.friendCheckboxItems.observe(viewLifecycleOwner) { items ->
             friendCheckboxAdapter.submitList(items)
             binding.textNoFriendsInFilter.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
         }
 
-        // Observe tag filter states
+        observeTagFilters()
+        observeFriendFilters()
+        observeQuestData()
+    }
+
+    private fun observeTagFilters() {
         viewModel.isAllTagsSelected.observe(viewLifecycleOwner) { isSelected ->
             binding.checkboxAllTags.setOnCheckedChangeListener(null)
             binding.checkboxAllTags.isChecked = isSelected
@@ -268,34 +241,30 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
 
         viewModel.selectedTags.observe(viewLifecycleOwner) { selectedTags ->
             val isAllTags = viewModel.isAllTagsSelected.value ?: false
-
-            // Update individual tag checkboxes
-            binding.checkboxMight.setOnCheckedChangeListener(null)
-            binding.checkboxMight.isChecked = !isAllTags && QuestTag.MIGHT in selectedTags
-            binding.checkboxMight.setOnCheckedChangeListener { _, checked ->
-                viewModel.toggleTagFilter(QuestTag.MIGHT, checked)
-            }
-
-            binding.checkboxMind.setOnCheckedChangeListener(null)
-            binding.checkboxMind.isChecked = !isAllTags && QuestTag.MIND in selectedTags
-            binding.checkboxMind.setOnCheckedChangeListener { _, checked ->
-                viewModel.toggleTagFilter(QuestTag.MIND, checked)
-            }
-
-            binding.checkboxHeart.setOnCheckedChangeListener(null)
-            binding.checkboxHeart.isChecked = !isAllTags && QuestTag.HEART in selectedTags
-            binding.checkboxHeart.setOnCheckedChangeListener { _, checked ->
-                viewModel.toggleTagFilter(QuestTag.HEART, checked)
-            }
-
-            binding.checkboxSpirit.setOnCheckedChangeListener(null)
-            binding.checkboxSpirit.isChecked = !isAllTags && QuestTag.SPIRIT in selectedTags
-            binding.checkboxSpirit.setOnCheckedChangeListener { _, checked ->
-                viewModel.toggleTagFilter(QuestTag.SPIRIT, checked)
-            }
+            updateTagCheckboxes(selectedTags, isAllTags)
         }
 
-        // Observe friend filter states
+        viewModel.tagFilterSummary.observe(viewLifecycleOwner) { summary ->
+            binding.textTagFilterSummary.text = summary
+        }
+    }
+
+    private fun updateTagCheckboxes(selectedTags: Set<QuestTag>, isAllTags: Boolean) {
+        mapOf(
+            binding.checkboxMight to QuestTag.MIGHT,
+            binding.checkboxMind to QuestTag.MIND,
+            binding.checkboxHeart to QuestTag.HEART,
+            binding.checkboxSpirit to QuestTag.SPIRIT
+        ).forEach { (checkbox, tag) ->
+            checkbox.setOnCheckedChangeListener(null)
+            checkbox.isChecked = !isAllTags && tag in selectedTags
+            checkbox.setOnCheckedChangeListener { _, checked ->
+                viewModel.toggleTagFilter(tag, checked)
+            }
+        }
+    }
+
+    private fun observeFriendFilters() {
         viewModel.isEveryoneSelected.observe(viewLifecycleOwner) { isSelected ->
             binding.checkboxEveryone.setOnCheckedChangeListener(null)
             binding.checkboxEveryone.isChecked = isSelected
@@ -312,26 +281,19 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             }
         }
 
-        // Observe filter summaries
-        viewModel.tagFilterSummary.observe(viewLifecycleOwner) { summary ->
-            binding.textTagFilterSummary.text = summary
-        }
-
         viewModel.friendFilterSummary.observe(viewLifecycleOwner) { summary ->
             binding.textFriendFilterSummary.text = summary
         }
+    }
 
-        // Observe unified filtered and sorted quest list
+    private fun observeQuestData() {
         viewModel.filteredAndSortedQuests.observe(viewLifecycleOwner) { quests ->
             questCompletionListAdapter.submitList(quests)
             binding.emptyStateLayout.visibility = if (quests.isEmpty()) View.VISIBLE else View.GONE
             binding.recyclerViewQuestList.visibility = if (quests.isEmpty()) View.GONE else View.VISIBLE
-
-            // Update quest count
             binding.textQuestCount.text = "${quests.size} quests"
         }
 
-        // Observe sort option
         viewModel.sortOption.observe(viewLifecycleOwner) { option ->
             val position = QuestCompletionSortOption.values().indexOf(option)
             if (binding.spinnerSortBy.selectedItemPosition != position) {
@@ -371,9 +333,7 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             }
         )
 
-        mapManager?.initializeMap {
-            // Map is ready
-        }
+        mapManager?.initializeMap {}
     }
 
     override fun onResume() {
@@ -406,5 +366,29 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         mapManager?.onDestroy()
         mapView.onDestroy()
         _binding = null
+    }
+
+    private data class FilterStates(
+        var isUnifiedFilterExpanded: Boolean = false,
+        var isTagFilterExpanded: Boolean = false,
+        var isFriendFilterExpanded: Boolean = false
+    ) {
+        fun toggleUnifiedFilter() {
+            isUnifiedFilterExpanded = !isUnifiedFilterExpanded
+            if (!isUnifiedFilterExpanded) collapseSubFilters()
+        }
+
+        fun toggleTagFilter() {
+            isTagFilterExpanded = !isTagFilterExpanded
+        }
+
+        fun toggleFriendFilter() {
+            isFriendFilterExpanded = !isFriendFilterExpanded
+        }
+
+        fun collapseSubFilters() {
+            isTagFilterExpanded = false
+            isFriendFilterExpanded = false
+        }
     }
 }

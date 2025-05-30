@@ -1,130 +1,256 @@
 package de.challenge3.questapp.utils
 
 import android.content.Context
+import android.util.Log
 import de.challenge3.questapp.repository.FirebaseQuestCompletionRepository
 import de.challenge3.questapp.repository.FirebaseFriendRepository
 import de.challenge3.questapp.ui.home.QuestCompletion
 import de.challenge3.questapp.ui.home.QuestTag
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class DataMigration(private val context: Context) {
+    private val TAG = "DataMigration"
 
-    fun migrateSampleDataToFirebase() {
-        val questRepository = FirebaseQuestCompletionRepository()
-        val friendRepository = FirebaseFriendRepository(context)
-        val currentUserId = friendRepository.getCurrentUserId()
+    suspend fun migrateSampleDataToFirebase(): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val questRepository = FirebaseQuestCompletionRepository()
+            val friendRepository = FirebaseFriendRepository(context)
+            val currentUserId = friendRepository.getCurrentUserId()
+            val currentUsername = getCurrentUsername()
+            val deviceId = getDeviceId()
 
-        val sampleQuests = getSampleQuests(currentUserId)
+            Log.d(TAG, "Starting migration for user: $currentUsername (ID: $currentUserId, Device: $deviceId)")
 
-        CoroutineScope(Dispatchers.IO).launch {
-            sampleQuests.forEach { quest ->
-                questRepository.addCompletedQuest(quest)
+            val sampleQuests = getSampleQuests(currentUserId, currentUsername, deviceId)
+            Log.d(TAG, "Generated ${sampleQuests.size} sample quests for device ending in ${deviceId.takeLast(6)}")
+
+            if (sampleQuests.isEmpty()) {
+                Log.d(TAG, "No sample quests generated for this device ID")
+                return@withContext true // Not an error, just no data for this device
+            }
+
+            var successCount = 0
+            for (quest in sampleQuests) {
+                try {
+                    questRepository.addCompletedQuest(quest)
+                    Log.d(TAG, "Added quest: ${quest.questText} at (${quest.lat}, ${quest.lng})")
+                    successCount++
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to add quest: ${quest.questText}", e)
+                }
+            }
+
+            Log.d(TAG, "Migration completed. Added $successCount/${sampleQuests.size} quests")
+            return@withContext successCount > 0
+        } catch (e: Exception) {
+            Log.e(TAG, "Migration failed with exception", e)
+            return@withContext false
+        }
+    }
+
+    private fun getSampleQuests(currentUserId: String, username: String, deviceId: String): List<QuestCompletion> {
+        // Get the last 6 characters of device ID for matching
+        val deviceSuffix = deviceId.takeLast(6)
+
+        Log.d(TAG, "Checking device suffix: $deviceSuffix for username: $username")
+
+        // Define different quest sets for different device IDs
+        return when (deviceSuffix) {
+            "5072a1" -> createQuestSet1(currentUserId, username)
+            "a5284e" -> createQuestSet2(currentUserId, username)
+            "ac69ea" -> createQuestSet3(currentUserId, username)
+            "49d22a" -> createQuestSet4(currentUserId, username)
+            "000000" -> createEmulatorQuestSet(currentUserId, username) // Common emulator device ID
+            else -> {
+                // For unknown device IDs, create a basic set based on hash of device ID
+                val hashBasedSet = (deviceSuffix.hashCode() % 4) + 1
+                Log.d(TAG, "Unknown device ID, using hash-based set: $hashBasedSet")
+                when (hashBasedSet) {
+                    1 -> createQuestSet1(currentUserId, username)
+                    2 -> createQuestSet2(currentUserId, username)
+                    3 -> createQuestSet3(currentUserId, username)
+                    else -> createQuestSet4(currentUserId, username)
+                }
             }
         }
     }
 
-    private fun getSampleQuests(currentUserId: String): List<QuestCompletion> {
-        return when (getCurrentUsername()) {
-            "User_5072a1" -> listOf(
-                QuestCompletion(
-                    id = "",
-                    lat = 48.8566, lng = 2.3522,
-                    timestamp = System.currentTimeMillis() - 3600000,
-                    questText = "Q1",
-                    tag = QuestTag.MIND,
-                    experiencePoints = 100,
-                    userId = currentUserId,
-                    username = "User_5072a1"
-                ),
-                QuestCompletion(
-                    id = "",
-                    lat = 54.5074, lng = -0.7278,
-                    timestamp = System.currentTimeMillis() - 5000000,
-                    questText = "Q2",
-                    tag = QuestTag.SPIRIT,
-                    experiencePoints = 75,
-                    userId = currentUserId,
-                    username = "User_5072a1"
-                )
+    private fun createQuestSet1(userId: String, username: String): List<QuestCompletion> {
+        Log.d(TAG, "Creating quest set 1 (Berlin/Paris theme)")
+        return listOf(
+            QuestCompletion(
+                id = "",
+                lat = 52.5200, lng = 13.4050, // Berlin
+                timestamp = System.currentTimeMillis() - 3600000,
+                questText = "Morning workout in Berlin",
+                tag = QuestTag.MIGHT,
+                experiencePoints = 100,
+                userId = userId,
+                username = username
+            ),
+            QuestCompletion(
+                id = "",
+                lat = 48.8566, lng = 2.3522, // Paris
+                timestamp = System.currentTimeMillis() - 7200000,
+                questText = "Visited Louvre Museum",
+                tag = QuestTag.MIND,
+                experiencePoints = 150,
+                userId = userId,
+                username = username
             )
-            "User_a5284e" -> listOf(
-                QuestCompletion(
-                    id = "",
-                    lat = 50.8566, lng = 2.3522,
-                    timestamp = System.currentTimeMillis() - 3600000,
-                    questText = "Q3",
-                    tag = QuestTag.MIND,
-                    experiencePoints = 100,
-                    userId = currentUserId,
-                    username = "User_a5284e"
-                ),
-                QuestCompletion(
-                    id = "",
-                    lat = 53.5074, lng = -0.9278,
-                    timestamp = System.currentTimeMillis() - 5000000,
-                    questText = "Q4",
-                    tag = QuestTag.SPIRIT,
-                    experiencePoints = 75,
-                    userId = currentUserId,
-                    username = "User_a5284e"
-                )
+        )
+    }
+
+    private fun createQuestSet2(userId: String, username: String): List<QuestCompletion> {
+        Log.d(TAG, "Creating quest set 2 (London/Amsterdam theme)")
+        return listOf(
+            QuestCompletion(
+                id = "",
+                lat = 51.5074, lng = -0.1278, // London
+                timestamp = System.currentTimeMillis() - 3600000,
+                questText = "Helped at local charity in London",
+                tag = QuestTag.HEART,
+                experiencePoints = 200,
+                userId = userId,
+                username = username
+            ),
+            QuestCompletion(
+                id = "",
+                lat = 52.3676, lng = 4.9041, // Amsterdam
+                timestamp = System.currentTimeMillis() - 7200000,
+                questText = "Meditation by the canals",
+                tag = QuestTag.SPIRIT,
+                experiencePoints = 80,
+                userId = userId,
+                username = username
             )
-            "User_ac69ea" -> listOf(
-                QuestCompletion(
-                    id = "",
-                    lat = 38.8566, lng = 2.3522,
-                    timestamp = System.currentTimeMillis() - 3600000,
-                    questText = "Q5",
-                    tag = QuestTag.MIND,
-                    experiencePoints = 100,
-                    userId = currentUserId,
-                    username = "User_ac69ea"
-                ),
-                QuestCompletion(
-                    id = "",
-                    lat = 44.5074, lng = -0.4278,
-                    timestamp = System.currentTimeMillis() - 5000000,
-                    questText = "Q6",
-                    tag = QuestTag.SPIRIT,
-                    experiencePoints = 75,
-                    userId = currentUserId,
-                    username = "User_ac69ea"
-                )
+        )
+    }
+
+    private fun createQuestSet3(userId: String, username: String): List<QuestCompletion> {
+        Log.d(TAG, "Creating quest set 3 (Rome/Barcelona theme)")
+        return listOf(
+            QuestCompletion(
+                id = "",
+                lat = 41.9028, lng = 12.4964, // Rome
+                timestamp = System.currentTimeMillis() - 3600000,
+                questText = "Explored ancient Roman history",
+                tag = QuestTag.MIND,
+                experiencePoints = 120,
+                userId = userId,
+                username = username
+            ),
+            QuestCompletion(
+                id = "",
+                lat = 41.3851, lng = 2.1734, // Barcelona
+                timestamp = System.currentTimeMillis() - 7200000,
+                questText = "Beach volleyball training",
+                tag = QuestTag.MIGHT,
+                experiencePoints = 90,
+                userId = userId,
+                username = username
             )
-            "User_49d22a" -> listOf(
-                QuestCompletion(
-                    id = "",
-                    lat = 68.8566, lng = 1.3522,
-                    timestamp = System.currentTimeMillis() - 3600000,
-                    questText = "Q7",
-                    tag = QuestTag.MIND,
-                    experiencePoints = 100,
-                    userId = currentUserId,
-                    username = "User_49d22a"
-                ),
-                QuestCompletion(
-                    id = "",
-                    lat = 74.5074, lng = -0.3278,
-                    timestamp = System.currentTimeMillis() - 5000000,
-                    questText = "Q8",
-                    tag = QuestTag.SPIRIT,
-                    experiencePoints = 75,
-                    userId = currentUserId,
-                    username = "User_49d22a"
-                )
+        )
+    }
+
+    private fun createQuestSet4(userId: String, username: String): List<QuestCompletion> {
+        Log.d(TAG, "Creating quest set 4 (Vienna/Prague theme)")
+        return listOf(
+            QuestCompletion(
+                id = "",
+                lat = 48.2082, lng = 16.3738, // Vienna
+                timestamp = System.currentTimeMillis() - 3600000,
+                questText = "Classical music appreciation",
+                tag = QuestTag.SPIRIT,
+                experiencePoints = 110,
+                userId = userId,
+                username = username
+            ),
+            QuestCompletion(
+                id = "",
+                lat = 50.0755, lng = 14.4378, // Prague
+                timestamp = System.currentTimeMillis() - 7200000,
+                questText = "Photography walk through old town",
+                tag = QuestTag.HEART,
+                experiencePoints = 85,
+                userId = userId,
+                username = username
             )
-            else -> emptyList()
-        }
+        )
+    }
+
+    private fun createEmulatorQuestSet(userId: String, username: String): List<QuestCompletion> {
+        Log.d(TAG, "Creating emulator quest set (Mixed European cities)")
+        return listOf(
+            QuestCompletion(
+                id = "",
+                lat = 52.5200, lng = 13.4050, // Berlin
+                timestamp = System.currentTimeMillis() - 3600000,
+                questText = "Emulator test quest - Berlin",
+                tag = QuestTag.MIND,
+                experiencePoints = 50,
+                userId = userId,
+                username = username
+            ),
+            QuestCompletion(
+                id = "",
+                lat = 48.8566, lng = 2.3522, // Paris
+                timestamp = System.currentTimeMillis() - 7200000,
+                questText = "Emulator test quest - Paris",
+                tag = QuestTag.HEART,
+                experiencePoints = 75,
+                userId = userId,
+                username = username
+            ),
+            QuestCompletion(
+                id = "",
+                lat = 51.5074, lng = -0.1278, // London
+                timestamp = System.currentTimeMillis() - 10800000,
+                questText = "Emulator test quest - London",
+                tag = QuestTag.MIGHT,
+                experiencePoints = 60,
+                userId = userId,
+                username = username
+            )
+        )
     }
 
     private fun getCurrentUsername(): String {
         val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        val deviceId = android.provider.Settings.Secure.getString(
+        val deviceId = getDeviceId()
+        return "User_${deviceId.takeLast(6)}"
+    }
+
+    private fun getDeviceId(): String {
+        return android.provider.Settings.Secure.getString(
             context.contentResolver,
             android.provider.Settings.Secure.ANDROID_ID
         )
-        return "User_${deviceId.takeLast(6)}"
+    }
+
+    // Debug method to check what device ID this device has
+    fun getDeviceInfo(): String {
+        val deviceId = getDeviceId()
+        val username = getCurrentUsername()
+        val deviceSuffix = deviceId.takeLast(6)
+
+        return """
+            Device ID: $deviceId
+            Username: $username
+            Device Suffix: $deviceSuffix
+            Quest Set: ${getQuestSetName(deviceSuffix)}
+        """.trimIndent()
+    }
+
+    private fun getQuestSetName(deviceSuffix: String): String {
+        return when (deviceSuffix) {
+            "5072a1" -> "Set 1 (Berlin/Paris)"
+            "a5284e" -> "Set 2 (London/Amsterdam)"
+            "ac69ea" -> "Set 3 (Rome/Barcelona)"
+            "49d22a" -> "Set 4 (Vienna/Prague)"
+            "000000" -> "Emulator Set (Mixed)"
+            else -> "Hash-based Set (${(deviceSuffix.hashCode() % 4) + 1})"
+        }
     }
 }

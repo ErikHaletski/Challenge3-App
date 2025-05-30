@@ -10,9 +10,6 @@ import de.challenge3.questapp.ui.home.QuestTag
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
-// handels all quest completion data
-// -> like: storing completed quests with location data, retrieving quests for users/friends
-// -> like: real-time updates, filtering/querying
 class FirebaseQuestCompletionRepository : QuestCompletionRepository {
 
     private val firestore = FirebaseFirestore.getInstance()
@@ -31,106 +28,61 @@ class FirebaseQuestCompletionRepository : QuestCompletionRepository {
         questsListener = questsCollection
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    return@addSnapshotListener
-                }
+                if (error != null) return@addSnapshotListener
 
-                val quests = snapshot?.documents?.mapNotNull { document ->
-                    try {
-                        QuestCompletion(
-                            id = document.id,
-                            lat = document.getDouble("lat") ?: 0.0,
-                            lng = document.getDouble("lng") ?: 0.0,
-                            timestamp = document.getLong("timestamp") ?: 0L,
-                            questText = document.getString("questText") ?: "",
-                            tag = QuestTag.valueOf(document.getString("tag") ?: "MIGHT"),
-                            experiencePoints = document.getLong("experiencePoints")?.toInt() ?: 0,
-                            userId = document.getString("userId") ?: "",
-                            username = document.getString("username") ?: ""
-                        )
-                    } catch (e: Exception) {
-                        null
-                    }
-                } ?: emptyList()
-
+                val quests = snapshot?.documents?.mapNotNull { createQuestCompletion(it) } ?: emptyList()
                 _completedQuests.value = quests
             }
+    }
+
+    private fun createQuestCompletion(document: com.google.firebase.firestore.DocumentSnapshot): QuestCompletion? {
+        return try {
+            QuestCompletion(
+                id = document.id,
+                lat = document.getDouble("lat") ?: 0.0,
+                lng = document.getDouble("lng") ?: 0.0,
+                timestamp = document.getLong("timestamp") ?: 0L,
+                questText = document.getString("questText") ?: "",
+                tag = QuestTag.valueOf(document.getString("tag") ?: "MIGHT"),
+                experiencePoints = document.getLong("experiencePoints")?.toInt() ?: 0,
+                userId = document.getString("userId") ?: "",
+                username = document.getString("username") ?: ""
+            )
+        } catch (e: Exception) {
+            null
+        }
     }
 
     override fun getCompletedQuests(): LiveData<List<QuestCompletion>> = _completedQuests
 
     override fun getQuestsForUserAndFriends(userId: String, friendIds: List<String>): LiveData<List<QuestCompletion>> {
-        // Stop previous listener if exists
         filteredQuestsListener?.remove()
 
         val allowedUserIds = listOf(userId) + friendIds
-
         if (allowedUserIds.isEmpty()) {
             _filteredQuests.value = emptyList()
             return _filteredQuests
         }
 
-        // Firebase 'in' queries are limited to 10 items, so we need to handle this
         if (allowedUserIds.size <= 10) {
+            // Use Firebase 'in' query for <= 10 users
             filteredQuestsListener = questsCollection
                 .whereIn("userId", allowedUserIds)
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .addSnapshotListener { snapshot, error ->
-                    if (error != null) {
-                        return@addSnapshotListener
-                    }
-
-                    val quests = snapshot?.documents?.mapNotNull { document ->
-                        try {
-                            QuestCompletion(
-                                id = document.id,
-                                lat = document.getDouble("lat") ?: 0.0,
-                                lng = document.getDouble("lng") ?: 0.0,
-                                timestamp = document.getLong("timestamp") ?: 0L,
-                                questText = document.getString("questText") ?: "",
-                                tag = QuestTag.valueOf(document.getString("tag") ?: "MIGHT"),
-                                experiencePoints = document.getLong("experiencePoints")?.toInt() ?: 0,
-                                userId = document.getString("userId") ?: "",
-                                username = document.getString("username") ?: ""
-                            )
-                        } catch (e: Exception) {
-                            null
-                        }
-                    } ?: emptyList()
-
+                    if (error != null) return@addSnapshotListener
+                    val quests = snapshot?.documents?.mapNotNull { createQuestCompletion(it) } ?: emptyList()
                     _filteredQuests.value = quests
                 }
         } else {
-            // For more than 10 users, we need to make multiple queries or filter client-side
-            // For now, let's filter client-side from all quests
+            // Filter client-side for > 10 users
             filteredQuestsListener = questsCollection
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .addSnapshotListener { snapshot, error ->
-                    if (error != null) {
-                        return@addSnapshotListener
-                    }
-
+                    if (error != null) return@addSnapshotListener
                     val quests = snapshot?.documents?.mapNotNull { document ->
-                        try {
-                            val questUserId = document.getString("userId") ?: ""
-                            if (questUserId in allowedUserIds) {
-                                QuestCompletion(
-                                    id = document.id,
-                                    lat = document.getDouble("lat") ?: 0.0,
-                                    lng = document.getDouble("lng") ?: 0.0,
-                                    timestamp = document.getLong("timestamp") ?: 0L,
-                                    questText = document.getString("questText") ?: "",
-                                    tag = QuestTag.valueOf(document.getString("tag") ?: "MIGHT"),
-                                    experiencePoints = document.getLong("experiencePoints")?.toInt() ?: 0,
-                                    userId = questUserId,
-                                    username = document.getString("username") ?: ""
-                                )
-                            } else null
-                        } catch (e: Exception) {
-                            null
-                        }
+                        createQuestCompletion(document)?.takeIf { it.userId in allowedUserIds }
                     } ?: emptyList()
-
                     _filteredQuests.value = quests
                 }
         }
@@ -157,7 +109,7 @@ class FirebaseQuestCompletionRepository : QuestCompletionRepository {
                 questsCollection.add(questData).await()
             }
         } catch (e: Exception) {
-            // Handle error
+            // Handle error appropriately
         }
     }
 
@@ -165,7 +117,7 @@ class FirebaseQuestCompletionRepository : QuestCompletionRepository {
         try {
             questsCollection.document(questId).delete().await()
         } catch (e: Exception) {
-            // Handle error
+            // Handle error appropriately
         }
     }
 

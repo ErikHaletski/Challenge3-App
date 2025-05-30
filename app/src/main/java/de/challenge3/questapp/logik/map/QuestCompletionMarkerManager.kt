@@ -9,14 +9,12 @@ import org.maplibre.android.plugins.annotation.Symbol
 import org.maplibre.android.plugins.annotation.SymbolManager
 import org.maplibre.android.plugins.annotation.SymbolOptions
 
-// manages map markers for completed quests
-// creates markers at locations, handles makrer click events, updates markers, shows quest popups on marker clicks
 class QuestCompletionMarkerManager(
     private val map: MapLibreMap,
     private val mapView: MapView,
     private val iconId: String,
     private val onQuestClick: (QuestCompletion, PointF) -> Unit
-) : QuestCompletionMarkerHandler, MarkerController {
+) : MarkerController {
 
     private var symbolManager: SymbolManager? = null
     private val questSymbolMap = mutableMapOf<Symbol, QuestCompletion>()
@@ -30,17 +28,10 @@ class QuestCompletionMarkerManager(
         }
     }
 
-    override fun addQuestMarkers(quests: List<QuestCompletion>) {
-        updateMarkers(quests)
-    }
-
     override fun updateMarkers(quests: List<QuestCompletion>) {
         symbolManager?.deleteAll()
         questSymbolMap.clear()
-
-        quests.forEach { quest ->
-            createMarkerForQuest(quest)
-        }
+        quests.forEach(::createMarkerForQuest)
     }
 
     private fun createMarkerForQuest(quest: QuestCompletion) {
@@ -50,7 +41,6 @@ class QuestCompletionMarkerManager(
                 .withIconImage(iconId)
                 .withIconSize(1.0f)
         )
-
         symbol?.let { questSymbolMap[it] = quest }
     }
 

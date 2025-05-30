@@ -34,7 +34,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = if (file("keystore.jks").exists()) signingConfigs.getByName("release") else null
+
         }
     }
 

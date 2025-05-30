@@ -43,6 +43,7 @@ class FirebaseQuestCompletionRepository : QuestCompletionRepository {
                 lng = document.getDouble("lng") ?: 0.0,
                 timestamp = document.getLong("timestamp") ?: 0L,
                 questText = document.getString("questText") ?: "",
+                questTitle = document.getString("questTitle") ?: "", // Titel aus Datenbank lesen
                 tag = QuestTag.valueOf(document.getString("tag") ?: "MIGHT"),
                 experiencePoints = document.getLong("experiencePoints")?.toInt() ?: 0,
                 userId = document.getString("userId") ?: "",
@@ -65,7 +66,6 @@ class FirebaseQuestCompletionRepository : QuestCompletionRepository {
         }
 
         if (allowedUserIds.size <= 10) {
-            // Use Firebase 'in' query for <= 10 users
             filteredQuestsListener = questsCollection
                 .whereIn("userId", allowedUserIds)
                 .orderBy("timestamp", Query.Direction.DESCENDING)
@@ -75,7 +75,6 @@ class FirebaseQuestCompletionRepository : QuestCompletionRepository {
                     _filteredQuests.value = quests
                 }
         } else {
-            // Filter client-side for > 10 users
             filteredQuestsListener = questsCollection
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .addSnapshotListener { snapshot, error ->
@@ -97,6 +96,7 @@ class FirebaseQuestCompletionRepository : QuestCompletionRepository {
                 "lng" to quest.lng,
                 "timestamp" to quest.timestamp,
                 "questText" to quest.questText,
+                "questTitle" to quest.questTitle, // Titel in Datenbank speichern
                 "tag" to quest.tag.name,
                 "experiencePoints" to quest.experiencePoints,
                 "userId" to quest.userId,

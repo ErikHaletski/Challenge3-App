@@ -1,5 +1,6 @@
 package de.challenge3.questapp.ui.activity
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -14,16 +15,7 @@ import de.challenge3.questapp.repository.FriendRepository
 import de.challenge3.questapp.repository.FirebaseFriendRepository
 import de.challenge3.questapp.models.Friend
 import org.maplibre.android.geometry.LatLng
-import android.content.Context
 
-
-// manages activity/map screen state
-// -> like: tag filtering, friend filtering, sorting, map state (location permissions, current location)
-// -> like: quest selection (for popup display)
-// important methods:   setAllTagsFilter()      -> toggles showing all quests tags
-//                      toggleFriendInFilter()  -> add/remove friends from filter
-//                      setSortOption()         -> change sorting method
-//                      selectQuest()           -> select quest for detailed view
 class ActivityViewModel(
     private val context: Context,
     private val questCompletionRepository: QuestCompletionRepository = FirebaseQuestCompletionRepository(),
@@ -121,8 +113,8 @@ class ActivityViewModel(
         val selectedTags = _selectedTags.value ?: emptySet()
 
         val filtered = when {
-            isAllTags -> quests // Show all tags
-            selectedTags.isEmpty() -> emptyList() // No tags selected
+            isAllTags -> quests
+            selectedTags.isEmpty() -> emptyList()
             else -> quests.filter { it.tag in selectedTags }
         }
 
@@ -136,7 +128,7 @@ class ActivityViewModel(
         val selectedFriends = _selectedFriendIds.value ?: emptySet()
 
         val filtered = when {
-            isEveryone -> quests // Show all friends
+            isEveryone -> quests
             else -> {
                 quests.filter { quest ->
                     (isMe && quest.userId == currentUserId) ||
@@ -153,7 +145,6 @@ class ActivityViewModel(
         val sortBy = _sortOption.value ?: QuestCompletionSortOption.NEWEST_FIRST
         val friendsList = friends.value ?: emptyList()
 
-        // Sort the filtered list
         val sorted = when (sortBy) {
             QuestCompletionSortOption.NEWEST_FIRST -> quests.sortedByDescending { it.timestamp }
             QuestCompletionSortOption.OLDEST_FIRST -> quests.sortedBy { it.timestamp }
@@ -245,7 +236,6 @@ class ActivityViewModel(
     // Tag filter methods
     fun setAllTagsFilter(isSelected: Boolean) {
         if (isSelected) {
-            // All Tags is exclusive - clear individual tag selections
             _isAllTagsSelected.value = true
             _selectedTags.value = emptySet()
         } else {
@@ -255,7 +245,6 @@ class ActivityViewModel(
 
     fun toggleTagFilter(tag: QuestTag, isSelected: Boolean) {
         if (isSelected) {
-            // Can't select individual tags with All Tags
             _isAllTagsSelected.value = false
             val currentSelected = _selectedTags.value ?: emptySet()
             _selectedTags.value = currentSelected + tag
@@ -268,7 +257,6 @@ class ActivityViewModel(
     // Friend filter methods
     fun setEveryoneFilter(isSelected: Boolean) {
         if (isSelected) {
-            // Everyone is exclusive - clear other selections
             _isEveryoneSelected.value = true
             _isMeSelected.value = false
             _selectedFriendIds.value = emptySet()
@@ -279,7 +267,6 @@ class ActivityViewModel(
 
     fun setMeFilter(isSelected: Boolean) {
         if (isSelected) {
-            // Can't select Me with Everyone
             _isEveryoneSelected.value = false
         }
         _isMeSelected.value = isSelected
@@ -287,7 +274,6 @@ class ActivityViewModel(
 
     fun toggleFriendInFilter(friendId: String, isSelected: Boolean) {
         if (isSelected) {
-            // Can't select friends with Everyone
             _isEveryoneSelected.value = false
             val currentSelected = _selectedFriendIds.value ?: emptySet()
             _selectedFriendIds.value = currentSelected + friendId
@@ -316,13 +302,28 @@ class ActivityViewModel(
             quest.username.ifEmpty { "Friend" }
         }
 
-        return """
-            ${quest.tag.displayName.uppercase()}
-            ${quest.questText}
-            Completed by: $userInfo
-            XP: ${quest.experiencePoints}
-            ${quest.formattedTimestamp}
-        """.trimIndent()
+        // Verbesserte Formatierung mit Emojis und Titel
+        return buildString {
+            append("${getTagEmoji(quest.tag)} ${quest.tag.displayName.uppercase()}\n")
+
+            if (quest.questTitle.isNotEmpty()) {
+                append("✅ ${quest.questTitle}\n")
+            }
+
+            append("${quest.questText}\n\n")
+            append("👤 Completed by: $userInfo\n")
+            append("⭐ XP: ${quest.experiencePoints}\n")
+            append("🕒 ${quest.formattedTimestamp}")
+        }
+    }
+
+    private fun getTagEmoji(tag: QuestTag): String {
+        return when (tag) {
+            QuestTag.MIGHT -> "💪"
+            QuestTag.MIND -> "🧠"
+            QuestTag.HEART -> "❤️"
+            QuestTag.SPIRIT -> "✨"
+        }
     }
 
     fun updateMapState(state: MapState) {

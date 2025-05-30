@@ -27,17 +27,17 @@ class DataMigration(private val context: Context) {
 
             if (sampleQuests.isEmpty()) {
                 Log.d(TAG, "No sample quests generated for this device ID")
-                return@withContext true // Not an error, just no data for this device
+                return@withContext true
             }
 
             var successCount = 0
             for (quest in sampleQuests) {
                 try {
                     questRepository.addCompletedQuest(quest)
-                    Log.d(TAG, "Added quest: ${quest.questText} at (${quest.lat}, ${quest.lng})")
+                    Log.d(TAG, "Added quest: ${quest.questTitle} - ${quest.questText} at (${quest.lat}, ${quest.lng})")
                     successCount++
                 } catch (e: Exception) {
-                    Log.e(TAG, "Failed to add quest: ${quest.questText}", e)
+                    Log.e(TAG, "Failed to add quest: ${quest.questTitle}", e)
                 }
             }
 
@@ -50,20 +50,17 @@ class DataMigration(private val context: Context) {
     }
 
     private fun getSampleQuests(currentUserId: String, username: String, deviceId: String): List<QuestCompletion> {
-        // Get the last 6 characters of device ID for matching
         val deviceSuffix = deviceId.takeLast(6)
 
         Log.d(TAG, "Checking device suffix: $deviceSuffix for username: $username")
 
-        // Define different quest sets for different device IDs
         return when (deviceSuffix) {
             "5072a1" -> createQuestSet1(currentUserId, username)
             "a5284e" -> createQuestSet2(currentUserId, username)
             "ac69ea" -> createQuestSet3(currentUserId, username)
             "49d22a" -> createQuestSet4(currentUserId, username)
-            "000000" -> createEmulatorQuestSet(currentUserId, username) // Common emulator device ID
+            "000000" -> createEmulatorQuestSet(currentUserId, username)
             else -> {
-                // For unknown device IDs, create a basic set based on hash of device ID
                 val hashBasedSet = (deviceSuffix.hashCode() % 4) + 1
                 Log.d(TAG, "Unknown device ID, using hash-based set: $hashBasedSet")
                 when (hashBasedSet) {
@@ -81,9 +78,10 @@ class DataMigration(private val context: Context) {
         return listOf(
             QuestCompletion(
                 id = "",
-                lat = 52.5200, lng = 13.4050, // Berlin
+                lat = 52.5200, lng = 13.4050,
                 timestamp = System.currentTimeMillis() - 3600000,
-                questText = "Morning workout in Berlin",
+                questTitle = "Berlin Workout", // Kurzer Titel für Marker
+                questText = "Completed morning workout session in Berlin's Tiergarten park",
                 tag = QuestTag.MIGHT,
                 experiencePoints = 100,
                 userId = userId,
@@ -91,9 +89,10 @@ class DataMigration(private val context: Context) {
             ),
             QuestCompletion(
                 id = "",
-                lat = 48.8566, lng = 2.3522, // Paris
+                lat = 48.8566, lng = 2.3522,
                 timestamp = System.currentTimeMillis() - 7200000,
-                questText = "Visited Louvre Museum",
+                questTitle = "Louvre Visit", // Kurzer Titel für Marker
+                questText = "Explored the magnificent art collection at the Louvre Museum in Paris",
                 tag = QuestTag.MIND,
                 experiencePoints = 150,
                 userId = userId,
@@ -107,9 +106,10 @@ class DataMigration(private val context: Context) {
         return listOf(
             QuestCompletion(
                 id = "",
-                lat = 51.5074, lng = -0.1278, // London
+                lat = 51.5074, lng = -0.1278,
                 timestamp = System.currentTimeMillis() - 3600000,
-                questText = "Helped at local charity in London",
+                questTitle = "London Charity", // Kurzer Titel für Marker
+                questText = "Volunteered at a local charity organization helping homeless people in London",
                 tag = QuestTag.HEART,
                 experiencePoints = 200,
                 userId = userId,
@@ -117,9 +117,10 @@ class DataMigration(private val context: Context) {
             ),
             QuestCompletion(
                 id = "",
-                lat = 52.3676, lng = 4.9041, // Amsterdam
+                lat = 52.3676, lng = 4.9041,
                 timestamp = System.currentTimeMillis() - 7200000,
-                questText = "Meditation by the canals",
+                questTitle = "Canal Meditation", // Kurzer Titel für Marker
+                questText = "Peaceful meditation session by the beautiful canals of Amsterdam",
                 tag = QuestTag.SPIRIT,
                 experiencePoints = 80,
                 userId = userId,
@@ -133,9 +134,10 @@ class DataMigration(private val context: Context) {
         return listOf(
             QuestCompletion(
                 id = "",
-                lat = 41.9028, lng = 12.4964, // Rome
+                lat = 41.9028, lng = 12.4964,
                 timestamp = System.currentTimeMillis() - 3600000,
-                questText = "Explored ancient Roman history",
+                questTitle = "Roman History", // Kurzer Titel für Marker
+                questText = "Deep dive into ancient Roman history at the Colosseum and Forum",
                 tag = QuestTag.MIND,
                 experiencePoints = 120,
                 userId = userId,
@@ -143,9 +145,10 @@ class DataMigration(private val context: Context) {
             ),
             QuestCompletion(
                 id = "",
-                lat = 41.3851, lng = 2.1734, // Barcelona
+                lat = 41.3851, lng = 2.1734,
                 timestamp = System.currentTimeMillis() - 7200000,
-                questText = "Beach volleyball training",
+                questTitle = "Beach Volleyball", // Kurzer Titel für Marker
+                questText = "Intensive beach volleyball training session at Barcelona's coastline",
                 tag = QuestTag.MIGHT,
                 experiencePoints = 90,
                 userId = userId,
@@ -159,9 +162,10 @@ class DataMigration(private val context: Context) {
         return listOf(
             QuestCompletion(
                 id = "",
-                lat = 48.2082, lng = 16.3738, // Vienna
+                lat = 48.2082, lng = 16.3738,
                 timestamp = System.currentTimeMillis() - 3600000,
-                questText = "Classical music appreciation",
+                questTitle = "Vienna Concert", // Kurzer Titel für Marker
+                questText = "Attended a classical music concert at Vienna's famous Musikverein",
                 tag = QuestTag.SPIRIT,
                 experiencePoints = 110,
                 userId = userId,
@@ -169,9 +173,10 @@ class DataMigration(private val context: Context) {
             ),
             QuestCompletion(
                 id = "",
-                lat = 50.0755, lng = 14.4378, // Prague
+                lat = 50.0755, lng = 14.4378,
                 timestamp = System.currentTimeMillis() - 7200000,
-                questText = "Photography walk through old town",
+                questTitle = "Prague Photography", // Kurzer Titel für Marker
+                questText = "Photography walk through Prague's historic old town and castle district",
                 tag = QuestTag.HEART,
                 experiencePoints = 85,
                 userId = userId,
@@ -185,9 +190,10 @@ class DataMigration(private val context: Context) {
         return listOf(
             QuestCompletion(
                 id = "",
-                lat = 52.5200, lng = 13.4050, // Berlin
+                lat = 52.5200, lng = 13.4050,
                 timestamp = System.currentTimeMillis() - 3600000,
-                questText = "Emulator test quest - Berlin",
+                questTitle = "Test Berlin", // Kurzer Titel für Marker
+                questText = "Emulator test quest in Berlin - exploring the city center",
                 tag = QuestTag.MIND,
                 experiencePoints = 50,
                 userId = userId,
@@ -195,9 +201,10 @@ class DataMigration(private val context: Context) {
             ),
             QuestCompletion(
                 id = "",
-                lat = 48.8566, lng = 2.3522, // Paris
+                lat = 48.8566, lng = 2.3522,
                 timestamp = System.currentTimeMillis() - 7200000,
-                questText = "Emulator test quest - Paris",
+                questTitle = "Test Paris", // Kurzer Titel für Marker
+                questText = "Emulator test quest in Paris - visiting famous landmarks",
                 tag = QuestTag.HEART,
                 experiencePoints = 75,
                 userId = userId,
@@ -205,9 +212,10 @@ class DataMigration(private val context: Context) {
             ),
             QuestCompletion(
                 id = "",
-                lat = 51.5074, lng = -0.1278, // London
+                lat = 51.5074, lng = -0.1278,
                 timestamp = System.currentTimeMillis() - 10800000,
-                questText = "Emulator test quest - London",
+                questTitle = "Test London", // Kurzer Titel für Marker
+                questText = "Emulator test quest in London - exploring the Thames area",
                 tag = QuestTag.MIGHT,
                 experiencePoints = 60,
                 userId = userId,
@@ -229,7 +237,6 @@ class DataMigration(private val context: Context) {
         )
     }
 
-    // Debug method to check what device ID this device has
     fun getDeviceInfo(): String {
         val deviceId = getDeviceId()
         val username = getCurrentUsername()

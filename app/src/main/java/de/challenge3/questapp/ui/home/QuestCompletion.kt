@@ -10,6 +10,7 @@ data class QuestCompletion(
     val lng: Double,
     val timestamp: Long,
     val questText: String,
+    val questTitle: String = "", // Neues Feld für den Titel
     val tag: QuestTag,
     val experiencePoints: Int = 0,
     val userId: String = "",
@@ -21,6 +22,10 @@ data class QuestCompletion(
 
     val location: LatLng
         get() = LatLng(lat, lng)
+
+    // Hilfsmethode für die Anzeige - verwendet Titel falls vorhanden, sonst questText
+    val displayTitle: String
+        get() = questTitle.ifEmpty { questText.take(30) + if (questText.length > 30) "..." else "" }
 }
 
 enum class QuestTag(val displayName: String) {

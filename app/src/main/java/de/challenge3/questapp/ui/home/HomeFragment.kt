@@ -29,7 +29,6 @@ class HomeFragment : Fragment() {
     private var showDaily = true
     private var showPermanent = true
 
-    // Permission Launcher mit LocationHelper
     private lateinit var locationPermissionLauncher: androidx.activity.result.ActivityResultLauncher<Array<String>>
 
     override fun onCreateView(
@@ -40,17 +39,13 @@ class HomeFragment : Fragment() {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root = binding.root
 
-        // LocationHelper initialisieren
         locationHelper = LocationHelper(requireContext())
-
-        // Permission Launcher erstellen
         locationPermissionLauncher = locationHelper.createPermissionLauncher(this)
 
         homeViewModel = ViewModelProvider(this)[HomeViewModel::class.java]
         val recyclerView = binding.questRecyclerView
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        // Permission beim Start anfordern
         locationHelper.requestPermissionsIfNeeded(locationPermissionLauncher)
 
         homeViewModel.questList.observe(viewLifecycleOwner) { quests ->
@@ -99,7 +94,6 @@ class HomeFragment : Fragment() {
     }
 
     private fun completeQuest(quest: Quest) {
-        // Get current user info
         val friendRepository = FirebaseFriendRepository(requireContext())
         val currentUserId = friendRepository.getCurrentUserId()
 
@@ -110,7 +104,6 @@ class HomeFragment : Fragment() {
         )
         val username = "User_${deviceId.takeLast(6)}"
 
-        // Location mit LocationHelper holen
         locationHelper.getLocationAsync { lat, lng ->
             val questTag = mapQuestTypeToTag(quest.statType)
 
@@ -120,6 +113,7 @@ class HomeFragment : Fragment() {
                 lng = lng,
                 timestamp = System.currentTimeMillis(),
                 questText = quest.description,
+                questTitle = quest.title,
                 tag = questTag,
                 experiencePoints = quest.xpReward,
                 userId = currentUserId,
@@ -129,7 +123,7 @@ class HomeFragment : Fragment() {
             val questRepository = FirebaseQuestCompletionRepository()
             lifecycleScope.launch {
                 questRepository.addCompletedQuest(questCompletion)
-                println("Quest completion saved: ${quest.title} at location ($lat, $lng)")
+                println("Quest completion saved: ${quest.title} - ${quest.description} at location ($lat, $lng)")
             }
         }
     }

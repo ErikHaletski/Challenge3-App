@@ -1,6 +1,6 @@
 on:
   schedule:
-    - cron: '0 10 * * 5'
+    - cron: '40 12 * * 5'
   workflow_dispatch:
 
 jobs:

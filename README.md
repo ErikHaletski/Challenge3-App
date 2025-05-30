@@ -3,4 +3,4 @@
 gradlew dependencyCheckAnalyze
 
 
-Wir testen hier die Releases.
+alle secrets geadded. richtige secret namen genutzt. local properties genutzt für lokale builds.

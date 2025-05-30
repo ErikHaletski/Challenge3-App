@@ -22,6 +22,12 @@ jobs:
       - name: Run code checks
         run: ./gradlew check
 
+      - name: Upload ktlint reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: ktlint-report
+          path: app/build/reports/ktlint/
+
       - name: Build with Gradle
         run: ./gradlew build
 

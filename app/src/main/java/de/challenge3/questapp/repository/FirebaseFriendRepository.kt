@@ -55,7 +55,6 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
             "createdAt" to System.currentTimeMillis(),
             "deviceId" to deviceId
         )
-
         usersCollection.document(userId).set(userData)
     }
 

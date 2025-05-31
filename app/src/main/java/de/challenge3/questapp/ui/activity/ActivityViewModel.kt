@@ -2,18 +2,17 @@ package de.challenge3.questapp.ui.activity
 
 import android.content.Context
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.switchMap
 import androidx.lifecycle.map
-import androidx.lifecycle.MediatorLiveData
-import de.challenge3.questapp.ui.home.QuestCompletion
-import de.challenge3.questapp.ui.home.QuestTag
-import de.challenge3.questapp.repository.QuestCompletionRepository
+import de.challenge3.questapp.models.Friend
+import de.challenge3.questapp.repository.FirebaseFriendRepository
 import de.challenge3.questapp.repository.FirebaseQuestCompletionRepository
 import de.challenge3.questapp.repository.FriendRepository
-import de.challenge3.questapp.repository.FirebaseFriendRepository
-import de.challenge3.questapp.models.Friend
+import de.challenge3.questapp.repository.QuestCompletionRepository
+import de.challenge3.questapp.ui.home.QuestCompletion
+import de.challenge3.questapp.ui.home.QuestTag
 import org.maplibre.android.geometry.LatLng
 
 class ActivityViewModel(
@@ -47,30 +46,38 @@ class ActivityViewModel(
     private val _sortOption = MutableLiveData<QuestCompletionSortOption>(QuestCompletionSortOption.NEWEST_FIRST)
     val sortOption: LiveData<QuestCompletionSortOption> = _sortOption
 
-    // All quests (unfiltered)
-    private val allQuests: LiveData<List<QuestCompletion>> = friends.switchMap { friendsList ->
-        val friendIds = friendsList.map { it.id }
-        questCompletionRepository.getQuestsForUserAndFriends(currentUserId, friendIds)
+    private val allQuests: LiveData<List<QuestCompletion>> = questCompletionRepository.getCompletedQuests()
+
+    private val friendAndUserFilteredQuests: LiveData<List<QuestCompletion>> = MediatorLiveData<List<QuestCompletion>>().apply {
+        addSource(allQuests) { quests ->
+            println("ActivityViewModel: All quests updated, count: ${quests?.size ?: 0}")
+            updateFriendAndUserFilteredQuests()
+        }
+        addSource(friends) { friendsList ->
+            println("ActivityViewModel: Friends updated, count: ${friendsList?.size ?: 0}")
+            updateFriendAndUserFilteredQuests()
+        }
+        addSource(_isEveryoneSelected) { updateFriendAndUserFilteredQuests() }
+        addSource(_isMeSelected) { updateFriendAndUserFilteredQuests() }
+        addSource(_selectedFriendIds) { updateFriendAndUserFilteredQuests() }
     }
 
     // Tag filtered quests
     private val tagFilteredQuests: LiveData<List<QuestCompletion>> = MediatorLiveData<List<QuestCompletion>>().apply {
-        addSource(allQuests) { updateTagFilteredQuests() }
+        addSource(friendAndUserFilteredQuests) { quests ->
+            println("ActivityViewModel: Friend filtered quests updated, count: ${quests?.size ?: 0}")
+            updateTagFilteredQuests()
+        }
         addSource(_isAllTagsSelected) { updateTagFilteredQuests() }
         addSource(_selectedTags) { updateTagFilteredQuests() }
     }
 
-    // Friend filtered quests
-    private val friendFilteredQuests: LiveData<List<QuestCompletion>> = MediatorLiveData<List<QuestCompletion>>().apply {
-        addSource(tagFilteredQuests) { updateFriendFilteredQuests() }
-        addSource(_isEveryoneSelected) { updateFriendFilteredQuests() }
-        addSource(_isMeSelected) { updateFriendFilteredQuests() }
-        addSource(_selectedFriendIds) { updateFriendFilteredQuests() }
-    }
-
     // Final filtered and sorted quests
     val filteredAndSortedQuests: LiveData<List<QuestCompletion>> = MediatorLiveData<List<QuestCompletion>>().apply {
-        addSource(friendFilteredQuests) { updateFilteredAndSortedQuests() }
+        addSource(tagFilteredQuests) { quests ->
+            println("ActivityViewModel: Tag filtered quests updated, count: ${quests?.size ?: 0}")
+            updateFilteredAndSortedQuests()
+        }
         addSource(_sortOption) { updateFilteredAndSortedQuests() }
         addSource(friends) { updateFilteredAndSortedQuests() }
     }
@@ -107,8 +114,43 @@ class ActivityViewModel(
     private val _mapState = MutableLiveData<MapState>()
     val mapState: LiveData<MapState> = _mapState
 
+    init {
+        println("ActivityViewModel: Initialized for user $currentUserId")
+    }
+
+    private fun updateFriendAndUserFilteredQuests() {
+        val quests = allQuests.value ?: emptyList()
+        val isEveryone = _isEveryoneSelected.value ?: false
+        val isMe = _isMeSelected.value ?: false
+        val selectedFriends = _selectedFriendIds.value ?: emptySet()
+        val friendsList = friends.value ?: emptyList()
+
+        val allowedUserIds = mutableSetOf<String>()
+
+        if (isEveryone) {
+            // Include current user
+            allowedUserIds.add(currentUserId)
+            // Include all friends
+            allowedUserIds.addAll(friendsList.map { it.id })
+        } else {
+            if (isMe) {
+                allowedUserIds.add(currentUserId)
+            }
+            allowedUserIds.addAll(selectedFriends)
+        }
+
+        val filtered = if (allowedUserIds.isEmpty()) {
+            emptyList()
+        } else {
+            quests.filter { quest -> quest.userId in allowedUserIds }
+        }
+
+        println("ActivityViewModel: Friend/User filtering - input: ${quests.size}, allowed users: $allowedUserIds, output: ${filtered.size}")
+        (friendAndUserFilteredQuests as MediatorLiveData).value = filtered
+    }
+
     private fun updateTagFilteredQuests() {
-        val quests = allQuests.value ?: return
+        val quests = friendAndUserFilteredQuests.value ?: emptyList()
         val isAllTags = _isAllTagsSelected.value ?: false
         val selectedTags = _selectedTags.value ?: emptySet()
 
@@ -118,30 +160,12 @@ class ActivityViewModel(
             else -> quests.filter { it.tag in selectedTags }
         }
 
+        println("ActivityViewModel: Tag filtering - input: ${quests.size}, output: ${filtered.size}")
         (tagFilteredQuests as MediatorLiveData).value = filtered
     }
 
-    private fun updateFriendFilteredQuests() {
-        val quests = tagFilteredQuests.value ?: return
-        val isEveryone = _isEveryoneSelected.value ?: false
-        val isMe = _isMeSelected.value ?: false
-        val selectedFriends = _selectedFriendIds.value ?: emptySet()
-
-        val filtered = when {
-            isEveryone -> quests
-            else -> {
-                quests.filter { quest ->
-                    (isMe && quest.userId == currentUserId) ||
-                            (quest.userId in selectedFriends)
-                }
-            }
-        }
-
-        (friendFilteredQuests as MediatorLiveData).value = filtered
-    }
-
     private fun updateFilteredAndSortedQuests() {
-        val quests = friendFilteredQuests.value ?: return
+        val quests = tagFilteredQuests.value ?: emptyList()
         val sortBy = _sortOption.value ?: QuestCompletionSortOption.NEWEST_FIRST
         val friendsList = friends.value ?: emptyList()
 
@@ -158,11 +182,12 @@ class ActivityViewModel(
             QuestCompletionSortOption.EXPERIENCE_LOW -> quests.sortedBy { it.experiencePoints }
         }
 
+        println("ActivityViewModel: Final sorting - input: ${quests.size}, output: ${sorted.size}")
         (filteredAndSortedQuests as MediatorLiveData).value = sorted
     }
 
     private fun updateFriendCheckboxItems() {
-        val friendsList = friends.value ?: return
+        val friendsList = friends.value ?: emptyList()
         val quests = allQuests.value ?: emptyList()
         val selectedIds = _selectedFriendIds.value ?: emptySet()
         val isEveryone = _isEveryoneSelected.value ?: false
@@ -302,7 +327,6 @@ class ActivityViewModel(
             quest.username.ifEmpty { "Friend" }
         }
 
-        // Verbesserte Formatierung mit Emojis und Titel
         return buildString {
             append("${getTagEmoji(quest.tag)} ${quest.tag.displayName.uppercase()}\n")
 
@@ -330,8 +354,14 @@ class ActivityViewModel(
         _mapState.value = state
     }
 
+    fun refreshData() {
+        println("ActivityViewModel: Forcing data refresh...")
+        (questCompletionRepository as? FirebaseQuestCompletionRepository)?.forceRefresh()
+    }
+
     override fun onCleared() {
         super.onCleared()
+        println("ActivityViewModel: Clearing and stopping listeners")
         (questCompletionRepository as? FirebaseQuestCompletionRepository)?.stopListening()
         friendRepository.stopListening()
     }

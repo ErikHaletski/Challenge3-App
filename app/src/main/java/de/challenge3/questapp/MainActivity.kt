@@ -1,78 +1,61 @@
 package de.challenge3.questapp
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import de.challenge3.questapp.databinding.ActivityMainBinding
-import de.challenge3.questapp.utils.DataMigration
+import de.challenge3.questapp.ui.setup.UserSetupActivity
+import de.challenge3.questapp.utils.UserManager
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+    private lateinit var userManager: UserManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        userManager = UserManager(this)
+
+        // Check if user setup is needed
+        lifecycleScope.launch {
+            val needsSetup = userManager.ensureUserExists()
+            if (needsSetup) {
+                // Redirect to setup activity
+                val intent = Intent(this@MainActivity, UserSetupActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+                finish()
+                return@launch
+            }
+
+            // User setup is complete, continue with normal flow
+            setupMainActivity()
+        }
+    }
+
+    private fun setupMainActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         setupNavigation()
 
-        // Debug: Long press to show device info and regenerate dummy data
+        // Debug: Long press to show user info
         binding.root.setOnLongClickListener {
-            showDeviceInfoAndRegenerateData()
+            showUserInfo()
             true
         }
     }
 
-    private fun showDeviceInfoAndRegenerateData() {
-        lifecycleScope.launch {
-            try {
-                val migration = DataMigration(this@MainActivity)
-                val deviceInfo = migration.getDeviceInfo()
-
-                // Show device info first
-                runOnUiThread {
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Device Info:\n$deviceInfo",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-
-                // Then regenerate data
-                val success = migration.migrateSampleDataToFirebase()
-
-                runOnUiThread {
-                    if (success) {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Dummy data regenerated successfully!",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    } else {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Failed to regenerate dummy data",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                }
-            } catch (e: Exception) {
-                runOnUiThread {
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Error: ${e.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
-        }
+    private fun showUserInfo() {
+        val debugInfo = userManager.getDebugInfo()
+        Toast.makeText(this, "User Info:\n$debugInfo", Toast.LENGTH_LONG).show()
     }
 
     private fun setupNavigation() {

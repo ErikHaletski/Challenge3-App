@@ -1,7 +1,6 @@
 package de.challenge3.questapp.repository
 
 import android.content.Context
-import android.provider.Settings
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.firebase.firestore.FirebaseFirestore
@@ -9,6 +8,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import de.challenge3.questapp.models.Friend
 import de.challenge3.questapp.models.FriendRequest
 import de.challenge3.questapp.models.FriendshipStatus
+import de.challenge3.questapp.utils.UserManager
 import kotlinx.coroutines.tasks.await
 
 class FirebaseFriendRepository(private val context: Context) : FriendRepository {
@@ -17,6 +17,7 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
     private val friendsCollection = firestore.collection("friends")
     private val friendRequestsCollection = firestore.collection("friend_requests")
     private val usersCollection = firestore.collection("users")
+    private val userManager = UserManager(context)
 
     private val _friends = MutableLiveData<List<Friend>>()
     private val _friendRequests = MutableLiveData<List<FriendRequest>>()
@@ -24,38 +25,8 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
     private var friendsListener: ListenerRegistration? = null
     private var requestsListener: ListenerRegistration? = null
 
-    private val _currentUserId: String by lazy {
-        val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        var userId = prefs.getString("user_id", null)
-
-        if (userId == null) {
-            val deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
-            userId = "user_device_$deviceId"
-            prefs.edit().putString("user_id", userId).apply()
-            createUserProfile(userId)
-        }
-        userId
-    }
-
     init {
         startListening()
-    }
-
-    private fun createUserProfile(userId: String) {
-        val deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
-        val userData = mapOf(
-            "userId" to userId,
-            "username" to "User_${deviceId.takeLast(6)}",
-            "email" to "$userId@questapp.local",
-            "level" to 1,
-            "totalExperience" to 0,
-            "isOnline" to true,
-            "lastSeen" to System.currentTimeMillis(),
-            "completedQuestsCount" to 0,
-            "createdAt" to System.currentTimeMillis(),
-            "deviceId" to deviceId
-        )
-        usersCollection.document(userId).set(userData)
     }
 
     private fun startListening() {
@@ -64,8 +35,10 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
     }
 
     private fun startFriendsListener() {
+        val currentUserId = userManager.getCurrentUserId()
+
         friendsListener = friendsCollection
-            .whereEqualTo("userId", _currentUserId)
+            .whereEqualTo("userId", currentUserId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) return@addSnapshotListener
 
@@ -79,8 +52,10 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
     }
 
     private fun startRequestsListener() {
+        val currentUserId = userManager.getCurrentUserId()
+
         requestsListener = friendRequestsCollection
-            .whereEqualTo("toUserId", _currentUserId)
+            .whereEqualTo("toUserId", currentUserId)
             .whereEqualTo("status", "PENDING_SENT")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) return@addSnapshotListener
@@ -162,13 +137,14 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
 
     override suspend fun sendFriendRequest(email: String): Result<Unit> {
         return try {
+            val currentUserId = userManager.getCurrentUserId()
             val targetUser = findUserByEmail(email) ?: return Result.failure(Exception("User not found"))
             val targetUserId = targetUser.getString("userId") ?: return Result.failure(Exception("Invalid user"))
 
-            validateFriendRequest(targetUserId)
+            validateFriendRequest(targetUserId, currentUserId)
 
             val requestData = mapOf(
-                "fromUserId" to _currentUserId,
+                "fromUserId" to currentUserId,
                 "toUserId" to targetUserId,
                 "status" to "PENDING_SENT",
                 "timestamp" to System.currentTimeMillis()
@@ -186,13 +162,13 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
         return userQuery.documents.firstOrNull()
     }
 
-    private suspend fun validateFriendRequest(targetUserId: String) {
-        if (targetUserId == _currentUserId) {
+    private suspend fun validateFriendRequest(targetUserId: String, currentUserId: String) {
+        if (targetUserId == currentUserId) {
             throw Exception("Cannot send friend request to yourself")
         }
 
         val existingFriendship = friendsCollection
-            .whereEqualTo("userId", _currentUserId)
+            .whereEqualTo("userId", currentUserId)
             .whereEqualTo("friendId", targetUserId)
             .get()
             .await()
@@ -202,7 +178,7 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
         }
 
         val existingRequest = friendRequestsCollection
-            .whereEqualTo("fromUserId", _currentUserId)
+            .whereEqualTo("fromUserId", currentUserId)
             .whereEqualTo("toUserId", targetUserId)
             .whereEqualTo("status", "PENDING_SENT")
             .get()
@@ -215,11 +191,12 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
 
     override suspend fun acceptFriendRequest(requestId: String): Result<Unit> {
         return try {
+            val currentUserId = userManager.getCurrentUserId()
             val requestDoc = friendRequestsCollection.document(requestId).get().await()
             val fromUserId = requestDoc.getString("fromUserId") ?: return Result.failure(Exception("Invalid request"))
             val toUserId = requestDoc.getString("toUserId") ?: return Result.failure(Exception("Invalid request"))
 
-            if (toUserId != _currentUserId) {
+            if (toUserId != currentUserId) {
                 return Result.failure(Exception("Not authorized to accept this request"))
             }
 
@@ -228,7 +205,7 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
             // Create bidirectional friendship
             val friendship1 = friendsCollection.document()
             batch.set(friendship1, mapOf(
-                "userId" to _currentUserId,
+                "userId" to currentUserId,
                 "friendId" to fromUserId,
                 "timestamp" to System.currentTimeMillis()
             ))
@@ -236,7 +213,7 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
             val friendship2 = friendsCollection.document()
             batch.set(friendship2, mapOf(
                 "userId" to fromUserId,
-                "friendId" to _currentUserId,
+                "friendId" to currentUserId,
                 "timestamp" to System.currentTimeMillis()
             ))
 
@@ -250,10 +227,11 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
 
     override suspend fun declineFriendRequest(requestId: String): Result<Unit> {
         return try {
+            val currentUserId = userManager.getCurrentUserId()
             val requestDoc = friendRequestsCollection.document(requestId).get().await()
             val toUserId = requestDoc.getString("toUserId")
 
-            if (toUserId != _currentUserId) {
+            if (toUserId != currentUserId) {
                 return Result.failure(Exception("Not authorized to decline this request"))
             }
 
@@ -266,11 +244,12 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
 
     override suspend fun removeFriend(friendId: String): Result<Unit> {
         return try {
+            val currentUserId = userManager.getCurrentUserId()
             val batch = firestore.batch()
 
             // Remove both directions of friendship
             val friendship1Query = friendsCollection
-                .whereEqualTo("userId", _currentUserId)
+                .whereEqualTo("userId", currentUserId)
                 .whereEqualTo("friendId", friendId)
                 .get()
                 .await()
@@ -279,7 +258,7 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
 
             val friendship2Query = friendsCollection
                 .whereEqualTo("userId", friendId)
-                .whereEqualTo("friendId", _currentUserId)
+                .whereEqualTo("friendId", currentUserId)
                 .get()
                 .await()
 
@@ -308,10 +287,11 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
                 .get()
                 .await()
 
+            val currentUserId = userManager.getCurrentUserId()
             val allResults = (usernameQuery.documents + emailQuery.documents)
                 .distinctBy { it.id }
                 .mapNotNull { createFriend(it) }
-                .filter { it.id != _currentUserId }
+                .filter { it.id != currentUserId }
 
             Result.success(allResults)
         } catch (e: Exception) {
@@ -324,14 +304,15 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
         requestsListener?.remove()
     }
 
-    override fun getCurrentUserId(): String = _currentUserId
+    override fun getCurrentUserId(): String = userManager.getCurrentUserId()
 
-    fun getDebugUserId(): String = _currentUserId
+    fun getDebugUserId(): String = userManager.getCurrentUserId()
 
     suspend fun debugCheckFriendRequests(): List<FriendRequest> {
         return try {
+            val currentUserId = userManager.getCurrentUserId()
             val snapshot = friendRequestsCollection
-                .whereEqualTo("toUserId", _currentUserId)
+                .whereEqualTo("toUserId", currentUserId)
                 .get()
                 .await()
 

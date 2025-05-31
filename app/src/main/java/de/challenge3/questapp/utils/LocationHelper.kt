@@ -3,11 +3,10 @@ package de.challenge3.questapp.utils
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.location.Location
 import android.location.LocationManager
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
-import androidx.activity.result.contract.ActivityResultContracts
 
 /**
  * Zentrale Klasse für Location-Handling in der App.

@@ -18,7 +18,7 @@ suspend fun <T> Task<T>.await(): T {
             continuation.resumeWithException(exception)
         }
         continuation.invokeOnCancellation {
-            // Wenn die Coroutine abgebrochen wird, Task nicht mehr beachten
+            // When coroutine gets aborted, don't take other Task into account anymore
             if (isComplete) return@invokeOnCancellation
             isCanceled
         }

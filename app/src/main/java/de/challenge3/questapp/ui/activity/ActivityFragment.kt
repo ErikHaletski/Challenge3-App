@@ -68,7 +68,23 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         setupClickListeners()
         observeViewModel()
 
+        println("ActivityFragment: onCreateView completed")
         return binding.root
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mapView.onResume()
+
+        println("ActivityFragment: onResume - refreshing data")
+        viewModel.refreshData()
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        println("ActivityFragment: onViewCreated - starting initial data load")
+
+        viewModel.refreshData()
     }
 
     fun requestLocationPermission() {
@@ -220,6 +236,14 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun observeViewModel() {
+        viewModel.filteredAndSortedQuests.observe(viewLifecycleOwner) { quests ->
+            println("ActivityFragment: Received ${quests.size} filtered quests")
+            questCompletionListAdapter.submitList(quests)
+            binding.emptyStateLayout.visibility = if (quests.isEmpty()) View.VISIBLE else View.GONE
+            binding.recyclerViewQuestList.visibility = if (quests.isEmpty()) View.GONE else View.VISIBLE
+            binding.textQuestCount.text = "${quests.size} quests"
+        }
+
         viewModel.friendCheckboxItems.observe(viewLifecycleOwner) { items ->
             friendCheckboxAdapter.submitList(items)
             binding.textNoFriendsInFilter.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
@@ -227,7 +251,7 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
 
         observeTagFilters()
         observeFriendFilters()
-        observeQuestData()
+        observeSortOptions()
     }
 
     private fun observeTagFilters() {
@@ -286,14 +310,7 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    private fun observeQuestData() {
-        viewModel.filteredAndSortedQuests.observe(viewLifecycleOwner) { quests ->
-            questCompletionListAdapter.submitList(quests)
-            binding.emptyStateLayout.visibility = if (quests.isEmpty()) View.VISIBLE else View.GONE
-            binding.recyclerViewQuestList.visibility = if (quests.isEmpty()) View.GONE else View.VISIBLE
-            binding.textQuestCount.text = "${quests.size} quests"
-        }
-
+    private fun observeSortOptions() {
         viewModel.sortOption.observe(viewLifecycleOwner) { option ->
             val position = QuestCompletionSortOption.values().indexOf(option)
             if (binding.spinnerSortBy.selectedItemPosition != position) {
@@ -303,6 +320,7 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
     }
 
     override fun onMapReady(map: MapLibreMap) {
+        println("ActivityFragment: Map is ready")
         mapLibreMap = map
 
         val markerManager = QuestCompletionMarkerManager(
@@ -333,12 +351,9 @@ class ActivityFragment : Fragment(), OnMapReadyCallback {
             }
         )
 
-        mapManager?.initializeMap {}
-    }
-
-    override fun onResume() {
-        super.onResume()
-        mapView.onResume()
+        mapManager?.initializeMap {
+            println("ActivityFragment: Map initialization completed")
+        }
     }
 
     override fun onPause() {

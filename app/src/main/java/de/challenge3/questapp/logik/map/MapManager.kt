@@ -59,8 +59,13 @@ class MapManager(
 
     private fun setupMarkers(style: Style) {
         markerController.initialize(style)
+
         viewModel.completedQuests.observe(fragment.viewLifecycleOwner) { quests ->
-            markerController.updateMarkers(quests)
+            println("MapManager: Received ${quests?.size ?: 0} quests for markers")
+            quests?.let {
+                markerController.updateMarkers(it)
+                println("MapManager: Updated markers with ${it.size} quests")
+            }
         }
     }
 

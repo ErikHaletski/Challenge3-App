@@ -33,10 +33,6 @@ class QuestCompletionListAdapter(
     inner class QuestViewHolder(
         private val binding: ItemQuestListBinding
     ) : RecyclerView.ViewHolder(binding.root) {
-
-        // Ändere die bind-Methode, um mit deinem bestehenden Layout zu arbeiten
-        // und die Titel korrekt anzuzeigen
-
         fun bind(quest: QuestCompletion) {
             binding.apply {
                 // Set quest tag
@@ -47,7 +43,7 @@ class QuestCompletionListAdapter(
                 questTagIndicator.setBackgroundColor(tagColor)
                 textQuestTag.setTextColor(tagColor)
 
-                // Zeige Titel wenn vorhanden, sonst den questText
+                // Show title if existing, else questText
                 if (quest.questTitle.isNotEmpty()) {
                     textQuestText.text = "✅ ${quest.questTitle}"
                 } else {

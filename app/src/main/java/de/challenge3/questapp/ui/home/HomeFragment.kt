@@ -1,6 +1,5 @@
 package de.challenge3.questapp.ui.home
 
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,11 +9,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import de.challenge3.questapp.databinding.FragmentHomeBinding
-import de.challenge3.questapp.repository.FirebaseFriendRepository
 import de.challenge3.questapp.repository.FirebaseQuestCompletionRepository
 import de.challenge3.questapp.ui.quest.Quest
 import de.challenge3.questapp.ui.quest.QuestListItem
 import de.challenge3.questapp.utils.LocationHelper
+import de.challenge3.questapp.utils.UserManager
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
@@ -25,6 +24,7 @@ class HomeFragment : Fragment() {
     private lateinit var homeViewModel: HomeViewModel
     private lateinit var questAdapter: QuestAdapter
     private lateinit var locationHelper: LocationHelper
+    private lateinit var userManager: UserManager
 
     private var showDaily = true
     private var showPermanent = true
@@ -40,6 +40,7 @@ class HomeFragment : Fragment() {
         val root = binding.root
 
         locationHelper = LocationHelper(requireContext())
+        userManager = UserManager(requireContext())
         locationPermissionLauncher = locationHelper.createPermissionLauncher(this)
 
         homeViewModel = ViewModelProvider(this)[HomeViewModel::class.java]
@@ -94,15 +95,8 @@ class HomeFragment : Fragment() {
     }
 
     private fun completeQuest(quest: Quest) {
-        val friendRepository = FirebaseFriendRepository(requireContext())
-        val currentUserId = friendRepository.getCurrentUserId()
-
-        val prefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        val deviceId = android.provider.Settings.Secure.getString(
-            requireContext().contentResolver,
-            android.provider.Settings.Secure.ANDROID_ID
-        )
-        val username = "User_${deviceId.takeLast(6)}"
+        val currentUserId = userManager.getCurrentUserId()
+        val username = userManager.getStoredUsername() ?: "Unknown User"
 
         locationHelper.getLocationAsync { lat, lng ->
             val questTag = mapQuestTypeToTag(quest.statType)
@@ -122,8 +116,16 @@ class HomeFragment : Fragment() {
 
             val questRepository = FirebaseQuestCompletionRepository()
             lifecycleScope.launch {
-                questRepository.addCompletedQuest(questCompletion)
-                println("Quest completion saved: ${quest.title} - ${quest.description} at location ($lat, $lng)")
+                try {
+                    println("HomeFragment: Saving quest completion: ${quest.title}")
+                    questRepository.addCompletedQuest(questCompletion)
+                    println("HomeFragment: Quest completion saved successfully")
+
+                    // FIXED: Force refresh the repository to ensure immediate updates
+                    questRepository.forceRefresh()
+                } catch (e: Exception) {
+                    println("HomeFragment: Error saving quest completion: ${e.message}")
+                }
             }
         }
     }

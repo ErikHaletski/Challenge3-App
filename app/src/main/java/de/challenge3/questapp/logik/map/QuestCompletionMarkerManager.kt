@@ -40,7 +40,6 @@ class QuestCompletionMarkerManager(
     }
 
     private fun createMarkerForQuest(quest: QuestCompletion) {
-        // Verwende deine definierten Quest-Tag-Farben
         val textColor = getTagColorHex(quest.tag)
 
         val symbol = symbolManager?.create(
@@ -52,13 +51,12 @@ class QuestCompletionMarkerManager(
         symbol?.let { questSymbolMap[it] = quest }
     }
 
-    // Verwende deine definierten Quest-Tag-Farben aus colors.xml
     private fun getTagColorHex(tag: QuestTag): String {
         val colorRes = when (tag) {
-            QuestTag.MIGHT -> R.color.tag_might    // #4CAF50 (Grün)
-            QuestTag.MIND -> R.color.tag_mind      // #2196F3 (Blau)
-            QuestTag.HEART -> R.color.tag_heart    // #E91E63 (Pink)
-            QuestTag.SPIRIT -> R.color.tag_spirit  // #9C27B0 (Lila)
+            QuestTag.MIGHT -> R.color.tag_might
+            QuestTag.MIND -> R.color.tag_mind
+            QuestTag.HEART -> R.color.tag_heart
+            QuestTag.SPIRIT -> R.color.tag_spirit
         }
 
         val color = ContextCompat.getColor(context, colorRes)

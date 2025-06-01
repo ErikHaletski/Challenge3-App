@@ -11,14 +11,14 @@ import de.challenge3.questapp.ui.quest.Quest.QuestType
 
 class HomeViewModel() : ViewModel() {
 
-    private val _questList = MutableLiveData<List<Quest>>()
-    val questList: LiveData<List<Quest>> = _questList
+    private var _questList = MutableLiveData<List<Quest>>()
+    val questList: LiveData<List<Quest>> get() = _questList
 
     init {
-        val combinedQuests = mutableListOf<Quest>()
+        var combinedQuests = mutableListOf<Quest>()
 
         // 3 zufällige Daily Quests generieren
-        val dailyQuests = DailyQuestPool.getRandomDailyQuests(3)
+        var dailyQuests = DailyQuestPool.getRandomDailyQuests(3)
         combinedQuests.addAll(dailyQuests)
 
         // Beispiel für permanente Quests
@@ -31,15 +31,25 @@ class HomeViewModel() : ViewModel() {
 //        combinedQuests.add(
 //            Quest("s3", "Yo mama", "Grab his ass", 2000, "Charisma", 2, QuestType.NORMAL, 0)
 //        )
+        var permanentQuests = mutableListOf<Quest>()
         for (permQuests in PermQuests.entries) {
-            combinedQuests.add(permQuests.quest)
+            permanentQuests.add(permQuests.quest)
+        }
+        permanentQuests.shuffle()
+        for (i in 1..3) {
+            combinedQuests.add(permanentQuests[i])
         }
 
         _questList.value = combinedQuests
+
     }
 
     fun triggerUpdate() {
         _questList.value = _questList.value
+    }
+
+    fun removeQuest(tar: String) {
+        _questList.value = _questList.value?.filterNot { tar == it.id }
     }
 
 //    fun addExperience(tar: String, exp: Int) {

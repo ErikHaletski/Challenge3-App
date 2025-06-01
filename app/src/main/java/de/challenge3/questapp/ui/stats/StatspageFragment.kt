@@ -20,8 +20,11 @@ class StatspageFragment : Fragment() {
     private lateinit var statsGrid: GridLayout
     private lateinit var detailView: LinearLayout
     private lateinit var textMainStat: TextView
+    private lateinit var sharedStatsViewModel: SharedStatsViewModel
 
     private var layoutMap: HashMap<String, LinearLayout> = HashMap<String, LinearLayout>()
+
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,7 +37,7 @@ class StatspageFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val sharedStatsViewModel = ViewModelProvider(requireActivity())[SharedStatsViewModel::class.java]
+        sharedStatsViewModel = ViewModelProvider(requireActivity())[SharedStatsViewModel::class.java]
 
         statsGrid = view.findViewById(R.id.statsGrid)
         detailView = view.findViewById(R.id.detailView)
@@ -63,6 +66,22 @@ class StatspageFragment : Fragment() {
         view.findViewById<Button>(R.id.buttonBack).setOnClickListener {
             showMainStats()
         }
+
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        println("ONPAUSE AUFGERUFEN")
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        println("ONRESUME AUFGERUFEN")
+
+        sharedStatsViewModel.resumeInstance()
 
     }
 

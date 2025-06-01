@@ -13,14 +13,9 @@ class StatsManager {
     }
 
     fun addExperience(tar: String, experience: Int) {
-        print("Adding Experience...")
         for (stat in statsList) {
-            println(stat.name)
             if (stat.name == tar) {
-                println("to " + stat.name)
-                println("Experience: " + stat.experience)
                 stat.addExperience(experience)
-                println("Experience: " + stat.experience)
                 return
             }
         }

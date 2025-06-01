@@ -5,11 +5,11 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity
-data class Stat (
+data class StatEntity (
     @PrimaryKey val name: String,
-    @ColumnInfo(name = "exp") var exp: Int,
-    @ColumnInfo(name = "lvl") var lvl: Int,
-    @ColumnInfo(name = "ceiling") var ceiling: Int
+    @ColumnInfo(name = "exp") val exp: Int,
+    @ColumnInfo(name = "lvl") val lvl: Int,
+    @ColumnInfo(name = "ceiling") val ceiling: Int
 
 )
 

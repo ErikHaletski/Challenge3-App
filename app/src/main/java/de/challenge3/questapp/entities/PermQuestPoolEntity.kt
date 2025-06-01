@@ -1,3 +1,9 @@
 package de.challenge3.questapp.entities
 
-data class PermQuestPoolEntity()
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity
+data class PermQuestPoolEntity(
+    @PrimaryKey val id: String
+)

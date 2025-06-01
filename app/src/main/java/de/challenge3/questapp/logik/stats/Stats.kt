@@ -1,5 +1,6 @@
 package de.challenge3.questapp.logik.stats
 
+import de.challenge3.questapp.entities.StatEntity
 import kotlin.math.round
 
 class Stats {
@@ -29,5 +30,9 @@ class Stats {
 
     private fun raiseExpCeiling() {
         expCeiling = expCeiling + round(expCeiling * 0.1).toInt()
+    }
+
+    fun toStat() : StatEntity {
+        return StatEntity(name, experience, level, expCeiling)
     }
 }

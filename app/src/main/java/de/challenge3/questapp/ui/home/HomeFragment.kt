@@ -10,26 +10,28 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import de.challenge3.questapp.databinding.FragmentHomeBinding
 import de.challenge3.questapp.repository.FirebaseQuestCompletionRepository
-import de.challenge3.questapp.logik.stats.StatsManager
+import de.challenge3.questapp.ui.SharedQuestViewModel
 import de.challenge3.questapp.ui.SharedStatsViewModel
 import de.challenge3.questapp.ui.quest.Quest
 import de.challenge3.questapp.ui.quest.QuestListItem
 import de.challenge3.questapp.utils.LocationHelper
 import de.challenge3.questapp.utils.UserManager
 import kotlinx.coroutines.launch
+import java.io.File
 
 class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var homeViewModel: HomeViewModel
+    private lateinit var sharedQuestViewModel: SharedQuestViewModel
     private lateinit var questAdapter: QuestAdapter
     private lateinit var locationHelper: LocationHelper
     private lateinit var userManager: UserManager
 
     private var showDaily = true
     private var showPermanent = true
+    var hidden = true
 
     private lateinit var locationPermissionLauncher: androidx.activity.result.ActivityResultLauncher<Array<String>>
 
@@ -40,24 +42,31 @@ class HomeFragment : Fragment() {
     ): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root = binding.root
+        val file = File(requireContext().filesDir, "lastTimestamp")
 
         locationHelper = LocationHelper(requireContext())
         userManager = UserManager(requireContext())
         locationPermissionLauncher = locationHelper.createPermissionLauncher(this)
 
-        homeViewModel = ViewModelProvider(this)[HomeViewModel::class.java]
+        sharedQuestViewModel = ViewModelProvider(requireActivity())[SharedQuestViewModel::class.java]
         val sharedStatsViewModel = ViewModelProvider(requireActivity())[SharedStatsViewModel::class.java]
         val recyclerView = binding.questRecyclerView
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         locationHelper.requestPermissionsIfNeeded(locationPermissionLauncher)
 
-        homeViewModel.questList.observe(viewLifecycleOwner) { quests ->
+        if (hidden) {
+            sharedQuestViewModel.addActivePermQuests(3)
+            sharedQuestViewModel.addActiveDailyQuests(3)
+            hidden = false
+        }
+
+
+        sharedQuestViewModel.questList.observe(viewLifecycleOwner) { quests ->
 
             val dailyQuests = quests.filter { it.type == Quest.QuestType.DAILY }
             val permanentQuests = quests.filter { it.type == Quest.QuestType.NORMAL }
-            val totalCount = dailyQuests.size + permanentQuests.size
-            binding.questCounter.text = "Quests: $totalCount / 10"
+            binding.questCounter.text = "Quests: ${permanentQuests.size} / 10"
 
             val items = mutableListOf<QuestListItem>()
 
@@ -82,13 +91,14 @@ class HomeFragment : Fragment() {
                         completeQuest(quest)
                     }
                     sharedStatsViewModel.addExperience(quest.statType, quest.statReward)
+                    sharedQuestViewModel.removeQuest(quest.id, quest.type)
                 },
                 onHeaderClicked = { type ->
                     when (type) {
                         QuestListItem.HeaderType.DAILY -> showDaily = !showDaily
                         QuestListItem.HeaderType.PERMANENT -> showPermanent = !showPermanent
                     }
-                    homeViewModel.triggerUpdate()
+                    sharedQuestViewModel.triggerUpdate()
                 }
             )
 

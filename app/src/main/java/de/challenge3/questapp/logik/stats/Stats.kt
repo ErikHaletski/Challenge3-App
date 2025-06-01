@@ -2,15 +2,19 @@ package de.challenge3.questapp.logik.stats
 
 import kotlin.math.round
 
-interface Stats {
+class Stats {
 
 
     val name: String
-    var experience: Int
-    var level: Int
-    var expCeiling: Int
+    var experience: Int = 0
+    var level: Int = 1
+    var expCeiling: Int = 100
 
-    public fun addExperience(exp: Int) {
+    constructor(name: String) {
+        this.name = name
+    }
+
+    fun addExperience(exp: Int) {
         experience = experience + exp
         reachedLvlUp()
     }

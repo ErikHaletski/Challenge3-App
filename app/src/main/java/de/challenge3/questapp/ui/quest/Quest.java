@@ -17,6 +17,7 @@ public class Quest {
     private QuestType type;
     private long expiresAt; // (Unix-Timestamp), 0 = kein Ablauf
 
+
     public Quest(String id, String title, String description,
                  int xpReward, String statType, int statReward,
                  QuestType type, long expiresAt) {

@@ -3,11 +3,13 @@ package de.challenge3.questapp.ui.home
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import de.challenge3.questapp.logik.quest.PermQuests
+import de.challenge3.questapp.logik.stats.StatsManager
 import de.challenge3.questapp.ui.quest.DailyQuestPool
 import de.challenge3.questapp.ui.quest.Quest
 import de.challenge3.questapp.ui.quest.Quest.QuestType
 
-class HomeViewModel : ViewModel() {
+class HomeViewModel() : ViewModel() {
 
     private val _questList = MutableLiveData<List<Quest>>()
     val questList: LiveData<List<Quest>> = _questList
@@ -20,15 +22,18 @@ class HomeViewModel : ViewModel() {
         combinedQuests.addAll(dailyQuests)
 
         // Beispiel für permanente Quests
-        combinedQuests.add(
-            Quest("s1", "Trainiere 3x", "Trainiere mindestens 3x diese Woche", 100, "Strength", 3, QuestType.NORMAL, 0)
-        )
-        combinedQuests.add(
-            Quest("s2", "Verbünde dich mit einem Freund", "Füge jemanden als Freund hinzu", 80, "Charisma", 2, QuestType.NORMAL, 0)
-        )
-        combinedQuests.add(
-            Quest("s3", "Yo mama", "Grab his ass", 2000, "Charisma", 2, QuestType.NORMAL, 0)
-        )
+//        combinedQuests.add(
+//            Quest("s1", "Trainiere 3x", "Trainiere mindestens 3x diese Woche", 100, "Strength", 3, QuestType.NORMAL, 0)
+//        )
+//        combinedQuests.add(
+//            Quest("s2", "Verbünde dich mit einem Freund", "Füge jemanden als Freund hinzu", 80, "Charisma", 2, QuestType.NORMAL, 0)
+//        )
+//        combinedQuests.add(
+//            Quest("s3", "Yo mama", "Grab his ass", 2000, "Charisma", 2, QuestType.NORMAL, 0)
+//        )
+        for (permQuests in PermQuests.entries) {
+            combinedQuests.add(permQuests.quest)
+        }
 
         _questList.value = combinedQuests
     }
@@ -36,4 +41,8 @@ class HomeViewModel : ViewModel() {
     fun triggerUpdate() {
         _questList.value = _questList.value
     }
+
+//    fun addExperience(tar: String, exp: Int) {
+//        statsManager.addExperience(tar, exp)
+//    }
 }

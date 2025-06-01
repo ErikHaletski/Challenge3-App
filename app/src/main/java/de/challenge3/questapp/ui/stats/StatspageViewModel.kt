@@ -3,6 +3,9 @@ package de.challenge3.questapp.ui.stats
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import de.challenge3.questapp.logik.stats.Attributes
+import de.challenge3.questapp.logik.stats.Stats
+import de.challenge3.questapp.logik.stats.StatsManager
 
 class StatspageViewModel : ViewModel() {
 

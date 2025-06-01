@@ -2,10 +2,13 @@
 
 package de.challenge3.questapp.ui.quest;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import de.challenge3.questapp.logik.quest.DailyQuests;
 import de.challenge3.questapp.ui.quest.Quest.QuestType;
 
 public class DailyQuestPool {
@@ -15,10 +18,13 @@ public class DailyQuestPool {
 
     static {
         // Dailies
-        allDailyTemplates.add(new Quest("d1", "10 Pushups", "Mach 10 Liegestütze", 50, "Strength", 2, QuestType.DAILY, 0));
-        allDailyTemplates.add(new Quest("d2", "Komm zur Ruhe", "5 Min meditieren", 40, "Willpower", 1, QuestType.DAILY, 0));
-        allDailyTemplates.add(new Quest("d3", "Bleib hydriert", "2L Wasser trinken", 30, "Health", 1, QuestType.DAILY, 0));
-        allDailyTemplates.add(new Quest("d4", "Frische Luft tut gut", "15 Minuten spazieren", 25, "Stamina", 1, QuestType.DAILY, 0));
+//        allDailyTemplates.add(new Quest("d1", "10 Pushups", "Mach 10 Liegestütze", 50, "Strength", 2, QuestType.DAILY, 0));
+//        allDailyTemplates.add(new Quest("d2", "Komm zur Ruhe", "5 Min meditieren", 40, "Willpower", 1, QuestType.DAILY, 0));
+//        allDailyTemplates.add(new Quest("d3", "Bleib hydriert", "2L Wasser trinken", 30, "Health", 1, QuestType.DAILY, 0));
+//        allDailyTemplates.add(new Quest("d4", "Frische Luft tut gut", "15 Minuten spazieren", 25, "Stamina", 1, QuestType.DAILY, 0));
+        for (@NotNull DailyQuests dailyQuests : DailyQuests.getEntries()) {
+            allDailyTemplates.add(dailyQuests.getQuest());
+        }
     }
 
     // Gibt zufällig count Quests zurück (mit Ablaufzeit von 24h)

@@ -58,6 +58,7 @@ dependencies {
     //implementation("com.google.firebase:firebase-auth-ktx")
     implementation(libs.google.firebase.firestore.ktx)
     implementation(libs.jetbrains.kotlinx)
+    implementation(libs.androidx.lifecycle.viewmodel.android)
     //implementation(libs.commons.compress)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -49,6 +49,8 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
         startListening()
     }
 
+
+    //TODO: User klasse erstellen
     private fun createUserProfile(userId: String) {
         // get the device id from android settings.secure api (device id = 64bit hex string)
         val deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)

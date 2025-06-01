@@ -18,6 +18,8 @@ ktlint = "12.2.0"
 dependencycheck = "12.1.1"
 firebaseBom = "32.7.0"
 kotlinxCoroutines = "1.7.3"
+foundationLayoutAndroid = "1.8.2"
+lifecycleViewmodelAndroid = "2.9.0"
 #commons-compress-v = "1.27.1"
 
 [libraries]
@@ -39,6 +41,8 @@ maplibre-android-annotation = {group = "org.maplibre.gl", name = "android-plugin
 google-firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom"}
 google-firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx"}
 jetbrains-kotlinx = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutines"}
+androidx-foundation-layout-android = { group = "androidx.compose.foundation", name = "foundation-layout-android", version.ref = "foundationLayoutAndroid" }
+androidx-lifecycle-viewmodel-android = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-android", version.ref = "lifecycleViewmodelAndroid" }
 #commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "commons-compress-v" }
 
 

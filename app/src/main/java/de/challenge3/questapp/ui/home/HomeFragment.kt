@@ -8,6 +8,8 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import de.challenge3.questapp.databinding.FragmentHomeBinding
+import de.challenge3.questapp.logik.stats.StatsManager
+import de.challenge3.questapp.ui.SharedStatsViewModel
 import de.challenge3.questapp.ui.quest.Quest
 import de.challenge3.questapp.ui.quest.QuestListItem
 
@@ -31,6 +33,7 @@ class HomeFragment : Fragment() {
         val root = binding.root
 
         homeViewModel = ViewModelProvider(this)[HomeViewModel::class.java]
+        val sharedStatsViewModel = ViewModelProvider(requireActivity())[SharedStatsViewModel::class.java]
         val recyclerView = binding.questRecyclerView
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
@@ -60,6 +63,7 @@ class HomeFragment : Fragment() {
                     questAdapter.notifyItemChanged(items.indexOfFirst {
                         it is QuestListItem.QuestItem && it.quest.id == quest.id
                     })
+                    sharedStatsViewModel.addExperience(quest.statType, quest.statReward)
                 },
                 onHeaderClicked = { type ->
                     when (type) {

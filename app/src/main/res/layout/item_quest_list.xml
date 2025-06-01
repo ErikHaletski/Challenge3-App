@@ -28,7 +28,7 @@
                 android:id="@+id/questTagIndicator"
                 android:layout_width="4dp"
                 android:layout_height="24dp"
-                android:background="#4CAF50"
+                android:background="@color/tag_might"
                 android:layout_marginEnd="8dp" />
 
             <!-- Quest Tag Text -->
@@ -39,7 +39,7 @@
                 android:text="MIGHT"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                android:textColor="#4CAF50"
+                android:textColor="@color/tag_might"
                 android:background="@drawable/tag_background"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="2dp" />
@@ -57,7 +57,7 @@
                 android:text="+50 XP"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                android:textColor="#FF9800"
+                android:textColor="@color/teal_200"
                 tools:text="+50 XP" />
 
         </LinearLayout>

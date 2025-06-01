@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -15,8 +17,24 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    // Load local.properties if it exists
+    val localProps = Properties().apply {
+        val file = rootProject.file("local.properties")
+        if (file.exists()) {
+            file.inputStream().use { load(it) }
+        }
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = rootProject.file("keystore.jks")
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: localProps.getProperty("KEYSTORE_PASSWORD")
+            keyAlias = System.getenv("KEY_ALIAS") ?: localProps.getProperty("KEY_ALIAS")
+            keyPassword = System.getenv("KEY_PASSWORD") ?: localProps.getProperty("KEY_PASSWORD")
+        }
     }
 
     buildTypes {
@@ -26,20 +44,23 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
         jvmTarget = "17"
     }
+
     buildFeatures {
         viewBinding = true
     }
 }
-
 
 dependencies {
     implementation(libs.androidx.core.ktx)
@@ -55,9 +76,10 @@ dependencies {
     implementation(libs.maplibre.android.sdk)
     implementation(libs.maplibre.android.annotation)
     implementation(platform(libs.google.firebase.bom))
-    //implementation("com.google.firebase:firebase-auth-ktx")
+    // implementation("com.google.firebase:firebase-auth-ktx")
     implementation(libs.google.firebase.firestore.ktx)
     implementation(libs.jetbrains.kotlinx)
+    // implementation(libs.commons.compress)
     implementation(libs.androidx.lifecycle.viewmodel.android)
     //implementation(libs.commons.compress)
     testImplementation(libs.junit)
@@ -71,8 +93,6 @@ configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
 
 apply(plugin = "com.google.gms.google-services")
 
-/*
 tasks.named("check") {
     dependsOn("ktlintCheck")
 }
-*/

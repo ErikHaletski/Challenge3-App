@@ -8,4 +8,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+keystore.jks
+keystore.b64
 .kotlin

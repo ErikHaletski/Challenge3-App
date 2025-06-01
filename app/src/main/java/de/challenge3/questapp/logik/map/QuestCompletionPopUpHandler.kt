@@ -1,12 +1,12 @@
 package de.challenge3.questapp.logik.map
 
 import android.graphics.PointF
+import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import de.challenge3.questapp.databinding.FragmentActivityBinding
 import de.challenge3.questapp.R
-import android.view.View
 
 class QuestCompletionPopUpHandler(binding: FragmentActivityBinding) {
 
@@ -14,12 +14,10 @@ class QuestCompletionPopUpHandler(binding: FragmentActivityBinding) {
     private val questPopupText: TextView = binding.root.findViewById(R.id.questPopupText)
     private val closePopupBtn: ImageView = binding.root.findViewById(R.id.closePopupBtn)
 
-    private val hidePopupRunnable = Runnable { questPopup.visibility = View.GONE }
+    private val hidePopupRunnable = Runnable { hidePopup() }
 
     init {
-        closePopupBtn.setOnClickListener {
-            hidePopup()
-        }
+        closePopupBtn.setOnClickListener { hidePopup() }
     }
 
     fun showPopup(text: String, point: PointF) {

@@ -13,8 +13,6 @@ import de.challenge3.questapp.ui.home.QuestTag
 import java.text.SimpleDateFormat
 import java.util.*
 
-//displays list of completed quests, shows quest detailes, color-codes by quest tag
-// provides "show on map functionality", handles quest selection
 class QuestCompletionListAdapter(
     private val onQuestClick: (QuestCompletion) -> Unit,
     private val onShowOnMapClick: (QuestCompletion) -> Unit,
@@ -35,22 +33,28 @@ class QuestCompletionListAdapter(
     inner class QuestViewHolder(
         private val binding: ItemQuestListBinding
     ) : RecyclerView.ViewHolder(binding.root) {
-
         fun bind(quest: QuestCompletion) {
             binding.apply {
                 // Set quest tag
                 textQuestTag.text = quest.tag.displayName.uppercase()
 
-                // Set tag color based on quest type
+                // Set tag color based on quest type using your defined colors
                 val tagColor = getTagColor(quest.tag)
                 questTagIndicator.setBackgroundColor(tagColor)
                 textQuestTag.setTextColor(tagColor)
 
-                // Set quest text
-                textQuestText.text = quest.questText
+                // Show title if existing, else questText
+                if (quest.questTitle.isNotEmpty()) {
+                    textQuestText.text = "✅ ${quest.questTitle}"
+                } else {
+                    textQuestText.text = quest.questText
+                }
 
-                // Set experience points
+                // Set experience points with your theme colors
                 textExperiencePoints.text = "+${quest.experiencePoints} XP"
+                textExperiencePoints.setTextColor(
+                    ContextCompat.getColor(root.context, R.color.teal_200)
+                )
 
                 // Set username (show "You" for current user)
                 textUsername.text = if (quest.userId == currentUserId) {

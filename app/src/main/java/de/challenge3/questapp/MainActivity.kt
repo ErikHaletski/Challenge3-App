@@ -1,35 +1,67 @@
 package de.challenge3.questapp
 
+import android.content.Intent
 import android.os.Bundle
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import de.challenge3.questapp.databinding.ActivityMainBinding
-import de.challenge3.questapp.utils.DataMigration
-import kotlinx.coroutines.delay
+import de.challenge3.questapp.ui.setup.UserSetupActivity
+import de.challenge3.questapp.utils.UserManager
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+    private lateinit var userManager: UserManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        userManager = UserManager(this)
+
+        // Check if user setup is needed
+        lifecycleScope.launch {
+            val needsSetup = userManager.ensureUserExists()
+            if (needsSetup) {
+                // Redirect to setup activity
+                val intent = Intent(this@MainActivity, UserSetupActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+                finish()
+                return@launch
+            }
+
+            // User setup is complete, continue with normal flow
+            setupMainActivity()
+        }
+    }
+
+    private fun setupMainActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         setupNavigation()
+
+        // Debug: Long press to show user info
+        binding.root.setOnLongClickListener {
+            showUserInfo()
+            true
+        }
+    }
+
+    private fun showUserInfo() {
+        val debugInfo = userManager.getDebugInfo()
+        Toast.makeText(this, "User Info:\n$debugInfo", Toast.LENGTH_LONG).show()
     }
 
     private fun setupNavigation() {
         val navView: BottomNavigationView = binding.navView
         val navController = findNavController(R.id.nav_host_fragment_activity_main)
 
-        // Define top level destinations
         val appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.navigation_home,
@@ -40,7 +72,6 @@ class MainActivity : AppCompatActivity() {
             )
         )
 
-        //setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
     }
 }

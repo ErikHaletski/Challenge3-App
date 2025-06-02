@@ -42,7 +42,6 @@ class HomeFragment : Fragment() {
     ): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root = binding.root
-        val file = File(requireContext().filesDir, "lastTimestamp")
 
         locationHelper = LocationHelper(requireContext())
         userManager = UserManager(requireContext())

@@ -11,7 +11,7 @@ enum class Attributes(val attType: Int, val button: Int, val layout: Int, val st
 
     //TODO: layouts für restliche stats (mit layout = 0) hinzufügen
     STRENGTH(2, R.id.buttonStrength, R.id.strengthFoundation, 0),
-    ENDURANCE(3, R.id.buttonEndurance, R.id.enduranceFoundation , 0),
+    ENDURANCE(3, R.id.buttonEndurance, R.id.enduranceFoundation , R.string.sp_endurance),
     INTELLIGENCE(2, R.id.buttonIntelligence, 0, 0),
     WISDOM(2, R.id.buttonWisdom, 0, 0),
     COMPASSION(2, R.id.buttonCompassion, 0, 0),

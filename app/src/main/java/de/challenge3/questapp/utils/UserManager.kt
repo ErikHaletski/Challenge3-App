@@ -17,13 +17,20 @@ class UserManager(private val context: Context) {
         private const val KEY_USER_ID = "user_id"
         private const val KEY_USERNAME = "username"
         private const val KEY_USER_SETUP_COMPLETE = "user_setup_complete"
+        private const val KEY_TOTAL_EXPERIENCE = "total_experience"
+        private const val KEY_PLAYER_LEVEL = "player_level"
     }
 
     // Callback for when quest count changes
     private var onQuestCountChangedCallback: (() -> Unit)? = null
+    private var onLevelUpCallback: ((Int, Int) -> Unit)? = null // (newLevel, levelsGained) -> Unit
 
     fun setOnQuestCountChangedCallback(callback: () -> Unit) {
         onQuestCountChangedCallback = callback
+    }
+
+    fun setOnLevelUpCallback(callback: (Int, Int) -> Unit) {
+        onLevelUpCallback = callback
     }
 
     /**
@@ -39,6 +46,90 @@ class UserManager(private val context: Context) {
         }
 
         return userId
+    }
+
+    /**
+     * Gets the current total experience
+     */
+    fun getTotalExperience(): Int {
+        return prefs.getInt(KEY_TOTAL_EXPERIENCE, 0)
+    }
+
+    /**
+     * Gets the current player level
+     */
+    fun getPlayerLevel(): Int {
+        return prefs.getInt(KEY_PLAYER_LEVEL, 1)
+    }
+
+    /**
+     * Calculates experience needed for a specific level
+     */
+    private fun getExperienceForLevel(level: Int): Int {
+        return level * 100 // Each level requires 100 XP (you can adjust this formula)
+    }
+
+    /**
+     * Calculates what level a player should be at with given total experience
+     */
+    private fun calculateLevelFromExperience(totalExp: Int): Int {
+        return (totalExp / 100) + 1 // Simple formula: every 100 XP = 1 level
+    }
+
+    /**
+     * Completes a quest and adds experience, handling level-ups
+     * Returns the number of levels gained
+     */
+    fun completeQuest(expGained: Int): Int {
+        val oldLevel = getPlayerLevel()
+        val oldTotalExp = getTotalExperience()
+        val newTotalExp = oldTotalExp + expGained
+
+        val newLevel = calculateLevelFromExperience(newTotalExp)
+        val levelsGained = newLevel - oldLevel
+
+        // Save locally
+        prefs.edit()
+            .putInt(KEY_TOTAL_EXPERIENCE, newTotalExp)
+            .putInt(KEY_PLAYER_LEVEL, newLevel)
+            .apply()
+
+        Log.d(TAG, "Quest completed: +$expGained XP. Total: $newTotalExp XP, Level: $newLevel")
+
+        if (levelsGained > 0) {
+            Log.d(TAG, "LEVEL UP! Gained $levelsGained level(s). Now level $newLevel")
+            onLevelUpCallback?.invoke(newLevel, levelsGained)
+        }
+
+        return levelsGained
+    }
+
+    /**
+     * Gets the experience progress for the current level (0.0 to 1.0)
+     */
+    fun getCurrentLevelProgress(): Float {
+        val totalExp = getTotalExperience()
+        val currentLevel = getPlayerLevel()
+        val expForCurrentLevel = getExperienceForLevel(currentLevel - 1)
+        val expForNextLevel = getExperienceForLevel(currentLevel)
+        val expInCurrentLevel = totalExp - expForCurrentLevel
+        val expNeededForLevel = expForNextLevel - expForCurrentLevel
+
+        return if (expNeededForLevel > 0) {
+            (expInCurrentLevel.toFloat() / expNeededForLevel.toFloat()).coerceIn(0f, 1f)
+        } else {
+            1f
+        }
+    }
+
+    /**
+     * Gets experience remaining until next level
+     */
+    fun getExperienceUntilNextLevel(): Int {
+        val totalExp = getTotalExperience()
+        val currentLevel = getPlayerLevel()
+        val expForNextLevel = getExperienceForLevel(currentLevel)
+        return (expForNextLevel - totalExp).coerceAtLeast(0)
     }
 
     /**
@@ -156,8 +247,8 @@ class UserManager(private val context: Context) {
             "userId" to userId,
             "username" to username,
             "email" to "$userId@questapp.local",
-            "level" to 1,
-            "totalExperience" to 0,
+            "level" to getPlayerLevel(),
+            "totalExperience" to getTotalExperience(),
             "isOnline" to true,
             "lastSeen" to System.currentTimeMillis(),
             "completedQuestsCount" to 0,
@@ -201,6 +292,10 @@ class UserManager(private val context: Context) {
                 val snapshot = transaction.get(userDoc)
                 val currentCount = snapshot.getLong("completedQuestsCount") ?: 0
                 transaction.update(userDoc, "completedQuestsCount", currentCount + 1)
+
+                // Also update level and total experience in Firebase
+                transaction.update(userDoc, "level", getPlayerLevel())
+                transaction.update(userDoc, "totalExperience", getTotalExperience())
             }.await()
 
             Log.d(TAG, "Incremented quest count for user: $userId")
@@ -284,13 +379,20 @@ class UserManager(private val context: Context) {
         val username = getStoredUsername()
         val setupComplete = isUserSetupComplete()
         val deviceId = getDeviceId()
+        val totalExp = getTotalExperience()
+        val level = getPlayerLevel()
+        val progress = getCurrentLevelProgress()
+        val expUntilNext = getExperienceUntilNextLevel()
 
         return """
             User ID: $userId
             Username: $username
             Setup Complete: $setupComplete
             Device ID: $deviceId
-            Device Suffix: ${deviceId.takeLast(6)}
+            Level: $level
+            Total XP: $totalExp
+            Level Progress: ${(progress * 100).toInt()}%
+            XP until next level: $expUntilNext
         """.trimIndent()
     }
 }

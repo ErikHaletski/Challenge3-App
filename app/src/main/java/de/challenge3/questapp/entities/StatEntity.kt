@@ -12,4 +12,3 @@ data class StatEntity (
     @ColumnInfo(name = "ceiling") val ceiling: Int
 
 )
-

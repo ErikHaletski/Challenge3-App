@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -18,7 +19,6 @@ import de.challenge3.questapp.ui.quest.QuestListItem
 import de.challenge3.questapp.utils.LocationHelper
 import de.challenge3.questapp.utils.UserManager
 import kotlinx.coroutines.launch
-import java.io.File
 
 class HomeFragment : Fragment() {
 
@@ -26,6 +26,7 @@ class HomeFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var sharedQuestViewModel: SharedQuestViewModel
+    private lateinit var sharedStatsViewModel: SharedStatsViewModel
     private lateinit var questAdapter: QuestAdapter
     private lateinit var locationHelper: LocationHelper
     private lateinit var userManager: UserManager
@@ -55,8 +56,18 @@ class HomeFragment : Fragment() {
             friendRepository.refreshFriendsData()
         }
 
+        // Set up level-up callback
+        userManager.setOnLevelUpCallback { newLevel, levelsGained ->
+            val message = if (levelsGained == 1) {
+                "🎉 Level Up! You are now level $newLevel!"
+            } else {
+                "🎉 Multiple Level Ups! You gained $levelsGained levels and are now level $newLevel!"
+            }
+            Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+        }
+
         sharedQuestViewModel = ViewModelProvider(requireActivity())[SharedQuestViewModel::class.java]
-        val sharedStatsViewModel = ViewModelProvider(requireActivity())[SharedStatsViewModel::class.java]
+        sharedStatsViewModel = ViewModelProvider(requireActivity())[SharedStatsViewModel::class.java]
         val recyclerView = binding.questRecyclerView
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
@@ -67,7 +78,6 @@ class HomeFragment : Fragment() {
             sharedQuestViewModel.addActiveDailyQuests(3)
             hidden = false
         }
-
 
         sharedQuestViewModel.questList.observe(viewLifecycleOwner) { quests ->
 
@@ -97,8 +107,6 @@ class HomeFragment : Fragment() {
                     if (isChecked) {
                         completeQuest(quest)
                     }
-                    sharedStatsViewModel.addExperience(quest.statType, quest.statReward)
-                    sharedQuestViewModel.removeQuest(quest.id, quest.type)
                 },
                 onHeaderClicked = { type ->
                     when (type) {
@@ -115,10 +123,23 @@ class HomeFragment : Fragment() {
         return root
     }
 
+    /**
+     * Handles quest completion including experience gain and level-ups
+     */
     private fun completeQuest(quest: Quest) {
         val currentUserId = userManager.getCurrentUserId()
         val username = userManager.getStoredUsername() ?: "Unknown User"
 
+        // Add experience to PLAYER LEVEL (quest.xpReward)
+        val levelsGained = userManager.completeQuest(quest.xpReward)
+
+        // Add experience to INDIVIDUAL STATS (quest.statReward for quest.statType)
+        sharedStatsViewModel.addExperience(quest.statType, quest.statReward)
+
+        // Remove the quest from the active list
+        sharedQuestViewModel.removeQuest(quest.id, quest.type)
+
+        // Save quest completion to Firebase
         locationHelper.getLocationAsync { lat, lng ->
             val questTag = mapQuestTypeToTag(quest.statType)
 
@@ -130,7 +151,7 @@ class HomeFragment : Fragment() {
                 questText = quest.description,
                 questTitle = quest.title,
                 tag = questTag,
-                experiencePoints = quest.xpReward,
+                experiencePoints = quest.xpReward, // This is the PLAYER XP
                 userId = currentUserId,
                 username = username
             )
@@ -145,15 +166,12 @@ class HomeFragment : Fragment() {
                     userManager.incrementCompletedQuestsCount()
                         .onSuccess {
                             println("HomeFragment: Updated user's quest count successfully")
-                            // The callback in userManager will automatically refresh friends data
                         }
                         .onFailure { error ->
                             println("HomeFragment: Failed to update quest count: ${error.message}")
                         }
 
                     println("HomeFragment: Quest completion saved successfully")
-
-                    // Force refresh the repository to ensure immediate updates
                     questRepository.forceRefresh()
                 } catch (e: Exception) {
                     println("HomeFragment: Error saving quest completion: ${e.message}")
@@ -164,10 +182,10 @@ class HomeFragment : Fragment() {
 
     private fun mapQuestTypeToTag(statType: String): QuestTag {
         return when (statType.lowercase()) {
-            "strength", "might" -> QuestTag.MIGHT
+            "strength", "might", "armstrength", "legstrength" -> QuestTag.MIGHT
             "intelligence", "wisdom", "mind" -> QuestTag.MIND
             "charisma", "compassion", "heart" -> QuestTag.HEART
-            "willpower", "resilience", "spirit" -> QuestTag.SPIRIT
+            "willpower", "resilience", "spirit", "endurance" -> QuestTag.SPIRIT
             else -> QuestTag.MIGHT
         }
     }

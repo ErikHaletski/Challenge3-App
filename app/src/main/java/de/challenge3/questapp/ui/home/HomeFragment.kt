@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import de.challenge3.questapp.databinding.FragmentHomeBinding
 import de.challenge3.questapp.repository.FirebaseQuestCompletionRepository
+import de.challenge3.questapp.repository.FirebaseFriendRepository
 import de.challenge3.questapp.ui.SharedQuestViewModel
 import de.challenge3.questapp.ui.SharedStatsViewModel
 import de.challenge3.questapp.ui.quest.Quest
@@ -28,6 +29,7 @@ class HomeFragment : Fragment() {
     private lateinit var questAdapter: QuestAdapter
     private lateinit var locationHelper: LocationHelper
     private lateinit var userManager: UserManager
+    private lateinit var friendRepository: FirebaseFriendRepository
 
     private var showDaily = true
     private var showPermanent = true
@@ -45,7 +47,13 @@ class HomeFragment : Fragment() {
 
         locationHelper = LocationHelper(requireContext())
         userManager = UserManager(requireContext())
+        friendRepository = FirebaseFriendRepository(requireContext())
         locationPermissionLauncher = locationHelper.createPermissionLauncher(this)
+
+        // Set up callback to refresh friends when quest count changes
+        userManager.setOnQuestCountChangedCallback {
+            friendRepository.refreshFriendsData()
+        }
 
         sharedQuestViewModel = ViewModelProvider(requireActivity())[SharedQuestViewModel::class.java]
         val sharedStatsViewModel = ViewModelProvider(requireActivity())[SharedStatsViewModel::class.java]
@@ -132,9 +140,20 @@ class HomeFragment : Fragment() {
                 try {
                     println("HomeFragment: Saving quest completion: ${quest.title}")
                     questRepository.addCompletedQuest(questCompletion)
+
+                    // Update the user's completed quests count in Firebase
+                    userManager.incrementCompletedQuestsCount()
+                        .onSuccess {
+                            println("HomeFragment: Updated user's quest count successfully")
+                            // The callback in userManager will automatically refresh friends data
+                        }
+                        .onFailure { error ->
+                            println("HomeFragment: Failed to update quest count: ${error.message}")
+                        }
+
                     println("HomeFragment: Quest completion saved successfully")
 
-                    // FIXED: Force refresh the repository to ensure immediate updates
+                    // Force refresh the repository to ensure immediate updates
                     questRepository.forceRefresh()
                 } catch (e: Exception) {
                     println("HomeFragment: Error saving quest completion: ${e.message}")

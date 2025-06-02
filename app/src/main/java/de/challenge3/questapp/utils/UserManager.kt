@@ -19,6 +19,13 @@ class UserManager(private val context: Context) {
         private const val KEY_USER_SETUP_COMPLETE = "user_setup_complete"
     }
 
+    // Callback for when quest count changes
+    private var onQuestCountChangedCallback: (() -> Unit)? = null
+
+    fun setOnQuestCountChangedCallback(callback: () -> Unit) {
+        onQuestCountChangedCallback = callback
+    }
+
     /**
      * Gets the current user ID, creating one if it doesn't exist
      */
@@ -174,6 +181,32 @@ class UserManager(private val context: Context) {
             Result.success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "Error updating user profile", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Increments the user's completed quests count in Firebase
+     */
+    suspend fun incrementCompletedQuestsCount(): Result<Unit> {
+        return try {
+            val userId = getCurrentUserId()
+            val userDoc = usersCollection.document(userId)
+
+            firestore.runTransaction { transaction ->
+                val snapshot = transaction.get(userDoc)
+                val currentCount = snapshot.getLong("completedQuestsCount") ?: 0
+                transaction.update(userDoc, "completedQuestsCount", currentCount + 1)
+            }.await()
+
+            Log.d(TAG, "Incremented quest count for user: $userId")
+
+            // Notify that quest count changed
+            onQuestCountChangedCallback?.invoke()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error incrementing quest count", e)
             Result.failure(e)
         }
     }

@@ -24,7 +24,7 @@ jobs:
           java-version: '17'
 
       - name: Run Dependency Check
-        run: ./gradlew dependencyCheckAnalyze
+        run: ./gradlew dependencyCheckAnalyze -Pformats=HTML,JSON
 
       - name: Upload Dependency Check Report
         if: success()

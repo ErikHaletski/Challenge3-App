@@ -77,18 +77,12 @@ dependencies {
     implementation(libs.maplibre.android.sdk)
     implementation(libs.maplibre.android.annotation)
     implementation(platform(libs.google.firebase.bom))
-    // implementation("com.google.firebase:firebase-auth-ktx")
     implementation(libs.google.firebase.firestore.ktx)
     implementation(libs.jetbrains.kotlinx)
-    // implementation(libs.commons.compress)
     implementation(libs.androidx.lifecycle.viewmodel.android)
-    //implementation(libs.commons.compress)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.lifecycle.process)
+
     // If this project uses any Kotlin source, use Kotlin Symbol Processing (KSP)
     // See Add the KSP plugin to your project
     ksp(libs.androidx.room.compiler)
@@ -109,11 +103,21 @@ dependencies {
     // optional - Guava support for Room, including Optional and ListenableFuture
     // implementation(libs.androidx.room.guava)
 
-    // optional - Test helpers
-    testImplementation(libs.androidx.room.testing)
-
     // optional - Paging 3 Integration
     // implementation(libs.androidx.room.paging)
+
+    //testImplementation(libs.androidx.room.testing)
+    testImplementation (libs.junit)
+    testImplementation (libs.mockito.core)
+    testImplementation (libs.mockito.kotlin)
+    testImplementation(libs.junit)
+    androidTestImplementation (libs.androidx.arch.core.testing)
+    androidTestImplementation (libs.kotlinx.coroutines.test)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation (libs.androidx.junit)
+    androidTestImplementation (libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.room.testing)
 }
 
 configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {

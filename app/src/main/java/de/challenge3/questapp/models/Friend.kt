@@ -16,8 +16,28 @@ data class Friend(
     val displayName: String
         get() = username.ifEmpty { email.substringBefore("@") }
 
+    /**
+     * Calculates the XP progress within the current level
+     * Formula: totalXP - ((level - 1) * 100)
+     */
+    val currentLevelExperience: Int
+        get() = totalExperience - ((level - 1) * 100)
+
+    /**
+     * Calculates level progress as a percentage (0.0 to 1.0)
+     * Each level requires 100 XP
+     */
     val levelProgress: Float
-        get() = (totalExperience % 1000) / 1000f
+        get() {
+            val expInCurrentLevel = currentLevelExperience
+            return (expInCurrentLevel / 100f).coerceIn(0f, 1f)
+        }
+
+    /**
+     * Gets XP needed to reach the next level
+     */
+    val experienceUntilNextLevel: Int
+        get() = 100 - currentLevelExperience
 
     val lastSeenFormatted: String
         get() = when {

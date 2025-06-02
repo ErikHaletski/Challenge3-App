@@ -5,11 +5,11 @@ enum class Achievements(val title: String, val description: String, val category
     READ_10("Reading novice", "Read 10 Pages from a Book.", "Reading"),
     READ_100("Knowledge consumer", "Read 100 Pages from a book.", "Reading"),
 
-    RUN_1("Getting started", "Run 1 Kilometer.", "Running"),
-    RUN_5("Everything is running great", "Run 5 Kilometers.", "Running"),
-    RUN_10("Almost there..", "Run 10 Kilometers.", "Running"),
+    RUN_1("Getting started", "Run 1 Kilometer.", "Endurance"),
+    RUN_5("Everything is running great", "Run 5 Kilometers.", "Endurance"),
+    RUN_10("Almost there..", "Run 10 Kilometers.", "Endurance"),
 
-    TRAIN_1("Sore muscles", "Train for the first time", "Training"),
-    TRAIN_10("Getting stronger", "Train for the tenth time", "Training"),
-    TRAIN_100("Athlete", "Train for the hundreth time", "Training"),
+    TRAIN_1("Sore muscles", "Train for the first time", "Armstrength"),
+    TRAIN_10("Getting stronger", "Train for the tenth time", "Armstrength"),
+    TRAIN_100("Athlete", "Train for the hundreth time", "Armstrength"),
 }

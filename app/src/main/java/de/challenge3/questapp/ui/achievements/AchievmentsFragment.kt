@@ -10,13 +10,16 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import de.challenge3.questapp.QuestApp
 import de.challenge3.questapp.databinding.FragmentAchievmentsBinding
+import de.challenge3.questapp.entities.AchievementsEntity
 
 class AchievmentsFragment : Fragment() {
 
     private var _binding: FragmentAchievmentsBinding? = null
     private val binding get() = _binding!!
     private lateinit var viewModel: AchievmentsViewModel
+    private val achievementsDao = QuestApp.database?.achievementsDao()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -34,7 +37,6 @@ class AchievmentsFragment : Fragment() {
             val mainTitle = TextView(requireContext()).apply {
                 text = "Achievements"
                 textSize = 24f
-                setTextColor(Color.BLACK)
                 setPadding(0, 0, 0, 24)
             }
             layout.addView(mainTitle)
@@ -44,7 +46,6 @@ class AchievmentsFragment : Fragment() {
                 val categoryLayout = LinearLayout(requireContext()).apply {
                     orientation = LinearLayout.VERTICAL
                     setPadding(24, 24, 24, 24)
-                    setBackgroundResource(android.R.drawable.dialog_holo_light_frame)
                     val params = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
@@ -56,7 +57,6 @@ class AchievmentsFragment : Fragment() {
                 val categoryTitle = TextView(requireContext()).apply {
                     text = category
                     textSize = 20f
-                    setTextColor(Color.DKGRAY)
                     setPadding(0, 0, 0, 16)
                 }
                 categoryLayout.addView(categoryTitle)
@@ -68,6 +68,7 @@ class AchievmentsFragment : Fragment() {
                         alpha = if (item.unlocked) 0.5f else 1f
                         setOnClickListener {
                             viewModel.toggleAchievement(item.achievement)
+                            achievementsDao?.insertAll(AchievementsEntity(item.achievement.title, item.achievement.category))
                         }
                     }
 

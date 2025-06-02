@@ -12,6 +12,9 @@ interface PermQuestPoolDao {
     @Query("SELECT * FROM PermQuestPoolEntity")
     fun getAll(): MutableList<PermQuestPoolEntity>
 
+    @Query("SELECT * FROM PermQuestPoolEntity WHERE stat = :stat AND reqLvl = :lvl COLLATE NOCASE")
+    fun getAllAllowed(stat: String, lvl: Int): MutableList<PermQuestPoolEntity>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertAll(vararg permQuestPoolEntity: PermQuestPoolEntity)
 

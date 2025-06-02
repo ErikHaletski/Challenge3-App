@@ -10,4 +10,5 @@
     <!-- Statspage Strings -->
     <string name="sp_arm_strength">Arm Strength \nLVL: %d || EXP: %d</string>
     <string name="sp_leg_strength">Leg Strength \nLVL: %d || EXP: %d</string>
+    <string name="sp_endurance">Endurance \nLVL: %d || EXP: %d</string>
 </resources>

@@ -4,14 +4,17 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import de.challenge3.questapp.QuestApp
+import de.challenge3.questapp.dao.PermQuestPoolDao
 import de.challenge3.questapp.entities.DailyQuestActiveEntity
 import de.challenge3.questapp.entities.DailyQuestPoolEntity
 import de.challenge3.questapp.entities.PermQuestActiveEntity
 import de.challenge3.questapp.entities.PermQuestPoolEntity
 import de.challenge3.questapp.logik.quest.DailyQuests
 import de.challenge3.questapp.logik.quest.PermQuests
+import de.challenge3.questapp.logik.stats.Attributes
 import de.challenge3.questapp.ui.quest.DailyQuestPool
 import de.challenge3.questapp.ui.quest.Quest
+import java.lang.Thread.sleep
 
 class SharedQuestViewModel : ViewModel() {
     private var _questList = MutableLiveData<List<Quest>>()
@@ -20,6 +23,7 @@ class SharedQuestViewModel : ViewModel() {
     val dailyQuestActiveDao = QuestApp.database?.dailyQuestActiveDao()
     val permQuestPoolDao = QuestApp.database?.permQuestPoolDao()
     val permQuestActiveDao = QuestApp.database?.permQuestActiveDao()
+    val achievementsDao = QuestApp.database?.achievementsDao()
 
     init {
 //        var combinedQuests = mutableListOf<Quest>()
@@ -86,7 +90,7 @@ class SharedQuestViewModel : ViewModel() {
 
     fun resetPermQuestsPool() {
         for (permQuests in PermQuests.entries) {
-            permQuestPoolDao!!.insertAll(PermQuestPoolEntity(permQuests.quest.id))
+            permQuestPoolDao!!.insertAll(PermQuestPoolEntity(permQuests.quest.id, permQuests.quest.statType, permQuests.reqLvl))
         }
     }
 
@@ -97,15 +101,27 @@ class SharedQuestViewModel : ViewModel() {
     }
 
     fun addActivePermQuests(count: Int) {
-        var remainingQuests = permQuestPoolDao!!.getAll()
+        var remainingQuests = mutableListOf<PermQuestPoolEntity>()
+        for (attribute in Attributes.entries) {
+            if (attribute.attType == 3) {
+                var filteredQuests = permQuestPoolDao!!.getAllAllowed(attribute.name, achievementsDao!!.getCountOf(attribute.name))
+                remainingQuests.addAll(filteredQuests)
+            }
+        }
+
         if (remainingQuests.size < count) {
             resetPermQuestsPool()
-            remainingQuests = permQuestPoolDao.getAll()
+            for (attribute in Attributes.entries) {
+                if (attribute.attType == 3) {
+                    var filteredQuests = permQuestPoolDao!!.getAllAllowed(attribute.name, achievementsDao!!.getCountOf(attribute.name))
+                    remainingQuests.addAll(filteredQuests)
+                }
+            }
         }
         remainingQuests.shuffle()
         for (i in 0..< count) {
             println("0<=$i<$count")
-            permQuestPoolDao.dropAll(remainingQuests[i])
+            permQuestPoolDao!!.dropAll(remainingQuests[i])
             permQuestActiveDao!!.insertAll(PermQuestActiveEntity(remainingQuests[i].id))
         }
         updateActiveQuests()

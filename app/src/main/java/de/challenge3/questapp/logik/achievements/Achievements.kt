@@ -12,4 +12,12 @@ enum class Achievements(val title: String, val description: String, val category
     TRAIN_1("Sore muscles", "Train for the first time", "Armstrength"),
     TRAIN_10("Getting stronger", "Train for the tenth time", "Armstrength"),
     TRAIN_100("Athlete", "Train for the hundreth time", "Armstrength"),
+
+    BEINE_1("Sore muscles", "Train for the first time", "Legstrength"),
+    BEINE_10("Getting stronger", "Train for the tenth time", "Legstrength"),
+    BEINE_100("Athlete", "Train for the hundreth time", "Legstrength"),
+
+    BRUST_1("Sore muscles", "Train for the first time", "Cheststrength"),
+    BRUST_10("Getting stronger", "Train for the tenth time", "Cheststrength"),
+    BRUST_100("Athlete", "Train for the hundreth time", "Cheststrength"),
 }

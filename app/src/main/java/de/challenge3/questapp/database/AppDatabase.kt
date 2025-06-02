@@ -21,7 +21,7 @@ import de.challenge3.questapp.entities.StatEntity
     DailyQuestActiveEntity::class,
     PermQuestPoolEntity::class,
     PermQuestActiveEntity::class,
-    AchievementsEntity::class], version = 4)
+    AchievementsEntity::class], version = 4, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun statDao(): StatDao
     abstract fun dailyQuestActiveDao(): DailyQuestActiveDao

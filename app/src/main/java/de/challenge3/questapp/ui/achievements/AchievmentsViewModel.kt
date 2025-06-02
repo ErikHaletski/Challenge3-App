@@ -23,7 +23,7 @@ class AchievmentsViewModel : ViewModel() {
 
     fun toggleAchievement(achievement: Achievements) {
         _achievements.value = _achievements.value?.map {
-            if (it.achievement == achievement) it.copy(unlocked = !it.unlocked) else it
+            if (it.achievement == achievement) it.copy(unlocked = true) else it
         }
     }
 }

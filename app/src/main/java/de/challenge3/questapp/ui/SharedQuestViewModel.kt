@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import de.challenge3.questapp.QuestApp
-import de.challenge3.questapp.dao.PermQuestPoolDao
 import de.challenge3.questapp.entities.DailyQuestActiveEntity
 import de.challenge3.questapp.entities.DailyQuestPoolEntity
 import de.challenge3.questapp.entities.PermQuestActiveEntity
@@ -12,9 +11,7 @@ import de.challenge3.questapp.entities.PermQuestPoolEntity
 import de.challenge3.questapp.logik.quest.DailyQuests
 import de.challenge3.questapp.logik.quest.PermQuests
 import de.challenge3.questapp.logik.stats.Attributes
-import de.challenge3.questapp.ui.quest.DailyQuestPool
 import de.challenge3.questapp.ui.quest.Quest
-import java.lang.Thread.sleep
 
 class SharedQuestViewModel : ViewModel() {
     private var _questList = MutableLiveData<List<Quest>>()
@@ -26,33 +23,6 @@ class SharedQuestViewModel : ViewModel() {
     val achievementsDao = QuestApp.database?.achievementsDao()
 
     init {
-//        var combinedQuests = mutableListOf<Quest>()
-//
-//        // 3 zufällige Daily Quests generieren
-//        var dailyQuests = DailyQuestPool.getRandomDailyQuests(3)
-//        combinedQuests.addAll(dailyQuests)
-//
-//        // Beispiel für permanente Quests
-////        combinedQuests.add(
-////            Quest("s1", "Trainiere 3x", "Trainiere mindestens 3x diese Woche", 100, "Strength", 3, QuestType.NORMAL, 0)
-////        )
-////        combinedQuests.add(
-////            Quest("s2", "Verbünde dich mit einem Freund", "Füge jemanden als Freund hinzu", 80, "Charisma", 2, QuestType.NORMAL, 0)
-////        )
-////        combinedQuests.add(
-////            Quest("s3", "Yo mama", "Grab his ass", 2000, "Charisma", 2, QuestType.NORMAL, 0)
-////        )
-//        var permanentQuests = mutableListOf<Quest>()
-//        for (permQuests in PermQuests.entries) {
-//            permanentQuests.add(permQuests.quest)
-//        }
-//        permanentQuests.shuffle()
-//        for (i in 1..3) {
-//            combinedQuests.add(permanentQuests[i])
-//        }
-//
-//        _questList.value = combinedQuests
-
         if (permQuestPoolDao!!.getAll().isEmpty()) {
             resetPermQuestsPool()
         }

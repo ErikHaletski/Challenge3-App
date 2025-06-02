@@ -17,7 +17,6 @@ import de.challenge3.questapp.ui.quest.QuestListItem
 import de.challenge3.questapp.utils.LocationHelper
 import de.challenge3.questapp.utils.UserManager
 import kotlinx.coroutines.launch
-import java.io.File
 
 class HomeFragment : Fragment() {
 

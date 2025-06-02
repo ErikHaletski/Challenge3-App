@@ -1,6 +1,5 @@
 package de.challenge3.questapp.ui.achievements
 
-import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -93,5 +92,18 @@ class AchievmentsFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        var erledigt = achievementsDao!!.getAll()
+        for (fertig in erledigt) {
+            for (achievement in viewModel.achievements.value!!) {
+                if (fertig.id == achievement.achievement.title) {
+                    viewModel.toggleAchievement(achievement.achievement)
+                }
+            }
+        }
     }
 }

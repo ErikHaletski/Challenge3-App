@@ -13,8 +13,6 @@ import android.widget.CheckBox
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import de.challenge3.questapp.R
-import de.challenge3.questapp.logik.stats.Attributes
-import de.challenge3.questapp.logik.stats.StatsManager
 import de.challenge3.questapp.ui.quest.Quest
 import de.challenge3.questapp.ui.quest.QuestListItem
 

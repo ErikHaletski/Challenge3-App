@@ -32,7 +32,9 @@ class SearchResultsAdapter(
                 textViewUsername.text = user.displayName
                 textViewEmail.text = user.email
                 textViewLevel.text = "Level ${user.level}"
-                textViewQuestCount.text = "${user.completedQuestsCount} quests"
+
+                // Show current level XP and quest count
+                textViewQuestCount.text = "${user.currentLevelExperience} XP • ${user.completedQuestsCount} quests"
 
                 buttonSendRequest.setOnClickListener {
                     onSendFriendRequest(user)

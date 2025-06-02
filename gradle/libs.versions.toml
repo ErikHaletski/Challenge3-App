@@ -23,6 +23,7 @@ lifecycleViewmodelAndroid = "2.9.0"
 #commons-compress-v = "1.27.1"
 ksp = "2.0.21-1.0.27"
 room = "2.7.1"
+androidxLifecycleProcess = "2.9.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -46,6 +47,7 @@ jetbrains-kotlinx = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutine
 androidx-foundation-layout-android = { group = "androidx.compose.foundation", name = "foundation-layout-android", version.ref = "foundationLayoutAndroid" }
 androidx-lifecycle-viewmodel-android = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-android", version.ref = "lifecycleViewmodelAndroid" }
 #commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "commons-compress-v" }
+androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "androidxLifecycleProcess"}
 
 #room lib
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }

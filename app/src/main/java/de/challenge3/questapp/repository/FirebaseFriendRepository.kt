@@ -24,6 +24,7 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
 
     private var friendsListener: ListenerRegistration? = null
     private var requestsListener: ListenerRegistration? = null
+    private var userDataListeners: MutableList<ListenerRegistration> = mutableListOf()
 
     init {
         startListening()
@@ -45,10 +46,34 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
                 val friendIds = snapshot?.documents?.mapNotNull { it.getString("friendId") } ?: emptyList()
                 if (friendIds.isNotEmpty()) {
                     fetchFriendDetails(friendIds)
+                    startUserDataListeners(friendIds) // Start listening to user data changes
                 } else {
                     _friends.value = emptyList()
+                    stopUserDataListeners()
                 }
             }
+    }
+
+    private fun startUserDataListeners(friendIds: List<String>) {
+        // Stop existing listeners
+        stopUserDataListeners()
+
+        // Start new listeners for each friend's user data
+        friendIds.forEach { friendId ->
+            val listener = usersCollection.document(friendId)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) return@addSnapshotListener
+
+                    // When any friend's data changes, refresh all friends
+                    fetchFriendDetails(friendIds)
+                }
+            userDataListeners.add(listener)
+        }
+    }
+
+    private fun stopUserDataListeners() {
+        userDataListeners.forEach { it.remove() }
+        userDataListeners.clear()
     }
 
     private fun startRequestsListener() {
@@ -134,6 +159,17 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
 
     override fun getFriends(): LiveData<List<Friend>> = _friends
     override fun getFriendRequests(): LiveData<List<FriendRequest>> = _friendRequests
+
+    /**
+     * Force refresh friends data - useful when we know data has changed
+     */
+    fun refreshFriendsData() {
+        val currentFriends = _friends.value ?: emptyList()
+        val friendIds = currentFriends.map { it.id }
+        if (friendIds.isNotEmpty()) {
+            fetchFriendDetails(friendIds)
+        }
+    }
 
     override suspend fun sendFriendRequest(email: String): Result<Unit> {
         return try {
@@ -302,6 +338,7 @@ class FirebaseFriendRepository(private val context: Context) : FriendRepository 
     override fun stopListening() {
         friendsListener?.remove()
         requestsListener?.remove()
+        stopUserDataListeners()
     }
 
     override fun getCurrentUserId(): String = userManager.getCurrentUserId()

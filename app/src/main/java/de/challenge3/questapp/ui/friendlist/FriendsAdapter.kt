@@ -31,7 +31,10 @@ class FriendsAdapter(
             binding.apply {
                 textViewUsername.text = friend.displayName
                 textViewLevel.text = "Level ${friend.level}"
-                textViewExperience.text = "${friend.totalExperience} XP"
+
+                // Show current level XP, not total XP
+                textViewExperience.text = "${friend.currentLevelExperience} XP"
+
                 textViewQuestCount.text = "${friend.completedQuestsCount} quests"
                 textViewStatus.text = friend.lastSeenFormatted
 
@@ -42,7 +45,7 @@ class FriendsAdapter(
                     android.view.View.GONE
                 }
 
-                // Set level progress
+                // Set level progress (0-100% within current level)
                 progressBarLevel.progress = (friend.levelProgress * 100).toInt()
 
                 buttonRemoveFriend.setOnClickListener {

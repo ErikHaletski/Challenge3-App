@@ -6,4 +6,9 @@
     <string name="title_activity">Activity</string>
     <string name="title_statspage">Stats</string>
     <string name="center_map_on_location">Center map on my location</string>
+
+    <!-- Statspage Strings -->
+    <string name="sp_arm_strength">Arm Strength \nLVL: %d || EXP: %d</string>
+    <string name="sp_leg_strength">Leg Strength \nLVL: %d || EXP: %d</string>
+    <string name="sp_endurance">Endurance \nLVL: %d || EXP: %d</string>
 </resources>

@@ -22,6 +22,7 @@ class QuestAdapter(
     private val onHeaderClicked: (QuestListItem.HeaderType) -> Unit
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
+
     companion object {
         private const val TYPE_HEADER = 0
         private const val TYPE_QUEST = 1
@@ -77,6 +78,7 @@ class QuestAdapter(
         private val checkbox: CheckBox = itemView.findViewById(R.id.questCheckbox)
         private val timer: TextView = itemView.findViewById(R.id.questTimer)
 
+
         fun bind(quest: Quest) {
             title.text = quest.title
             description.text = quest.description
@@ -91,8 +93,7 @@ class QuestAdapter(
                     timer.visibility = View.VISIBLE
                     timer.text = "⏰ ${hours}h ${minutes}m"
                 } else {
-                    timer.visibility = View.VISIBLE
-                    timer.text = "❌ Abgelaufen"
+                    itemView.visibility = View.GONE
                 }
             } else {
                 timer.visibility = View.GONE
@@ -105,6 +106,7 @@ class QuestAdapter(
             if (quest.isCompleted) {
                 title.paintFlags = title.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
                 itemView.alpha = 0.5f
+                itemView.visibility = View.GONE
             } else {
                 title.paintFlags = title.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
                 itemView.alpha = 1f

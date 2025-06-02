@@ -12,69 +12,64 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="12dp"
-        android:background="#222222">
+        android:padding="12dp">
 
         <!-- Checkbox rechts -->
         <CheckBox
             android:id="@+id/questCheckbox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:buttonTint="#00FFAA" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <!-- Titel -->
         <TextView
             android:id="@+id/questTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
             android:text="Questtitel"
             android:textSize="18sp"
-            android:textColor="#00FFAA"
             android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/questCheckbox"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginEnd="8dp" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <!-- Beschreibung -->
         <TextView
             android:id="@+id/questDescription"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:text="Beschreibung..."
             android:textSize="14sp"
-            android:textColor="#CCCCCC"
-            app:layout_constraintTop_toBottomOf="@id/questTitle"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="4dp" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/questTitle" />
 
         <!-- XP -->
         <TextView
             android:id="@+id/questXP"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:text="XP: 20"
             android:textSize="12sp"
-            android:textColor="#AAAAFF"
-            app:layout_constraintTop_toBottomOf="@id/questDescription"
             app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginTop="4dp" />
+            app:layout_constraintTop_toBottomOf="@id/questDescription" />
 
         <!-- Daily Timer -->
         <TextView
             android:id="@+id/questTimer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:text="⏰ 23h 59m"
-            android:textSize="12sp"
             android:textColor="#FF8888"
+            android:textSize="12sp"
             android:visibility="gone"
-            app:layout_constraintTop_toBottomOf="@id/questDescription"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="4dp" />
+            app:layout_constraintTop_toBottomOf="@id/questDescription" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>

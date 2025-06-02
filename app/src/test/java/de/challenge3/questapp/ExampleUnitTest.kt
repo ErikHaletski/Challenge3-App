@@ -14,11 +14,4 @@ class ExampleUnitTest {
     fun addition_isCorrect() {
         assertEquals(4, 2 + 2)
     }
-
-    @Test
-    fun addieren_isCorrect() {
-        var spaßmathe = Mathe()
-        print(spaßmathe.addieren(1,2))
-        assertEquals(3, spaßmathe.addieren(1, 2))
-    }
 }

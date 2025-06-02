@@ -18,7 +18,12 @@ ktlint = "12.2.0"
 dependencycheck = "12.1.1"
 firebaseBom = "32.7.0"
 kotlinxCoroutines = "1.7.3"
+foundationLayoutAndroid = "1.8.2"
+lifecycleViewmodelAndroid = "2.9.0"
 #commons-compress-v = "1.27.1"
+ksp = "2.0.21-1.0.27"
+room = "2.7.1"
+androidxLifecycleProcess = "2.9.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -39,7 +44,20 @@ maplibre-android-annotation = {group = "org.maplibre.gl", name = "android-plugin
 google-firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom"}
 google-firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx"}
 jetbrains-kotlinx = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutines"}
+androidx-foundation-layout-android = { group = "androidx.compose.foundation", name = "foundation-layout-android", version.ref = "foundationLayoutAndroid" }
+androidx-lifecycle-viewmodel-android = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-android", version.ref = "lifecycleViewmodelAndroid" }
 #commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "commons-compress-v" }
+androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "androidxLifecycleProcess"}
+
+#room lib
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+androidx-room-guava = { module = "androidx.room:room-guava", version.ref = "room" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+androidx-room-paging = { module = "androidx.room:room-paging", version.ref = "room" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+androidx-room-rxjava2 = { module = "androidx.room:room-rxjava2", version.ref = "room" }
+androidx-room-rxjava3 = { module = "androidx.room:room-rxjava3", version.ref = "room" }
+androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
 
 
 [plugins]
@@ -47,4 +65,5 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
 owasp-dependencycheck = { id = "org.owasp.dependencycheck", version.ref = "dependencycheck" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 

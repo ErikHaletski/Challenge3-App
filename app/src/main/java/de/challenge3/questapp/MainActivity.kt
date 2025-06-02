@@ -40,6 +40,36 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Set user as online when app comes to foreground
+        lifecycleScope.launch {
+            userManager.setUserOnline()
+                .onFailure { error ->
+                    println("Failed to set user online: ${error.message}")
+                }
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // Set user as offline when app goes to background
+        lifecycleScope.launch {
+            userManager.setUserOffline()
+                .onFailure { error ->
+                    println("Failed to set user offline: ${error.message}")
+                }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Set user as offline when app is destroyed
+        lifecycleScope.launch {
+            userManager.setUserOffline()
+        }
+    }
+
     private fun setupMainActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)

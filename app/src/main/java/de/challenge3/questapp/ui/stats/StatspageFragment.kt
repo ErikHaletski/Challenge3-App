@@ -11,22 +11,33 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import de.challenge3.questapp.R
 import androidx.core.view.isGone
+import androidx.lifecycle.ViewModelProvider
 import de.challenge3.questapp.logik.stats.Attributes
+import de.challenge3.questapp.ui.SharedStatsViewModel
 
 class StatspageFragment : Fragment() {
 
     private lateinit var statsGrid: GridLayout
     private lateinit var detailView: LinearLayout
     private lateinit var textMainStat: TextView
+    private lateinit var sharedStatsViewModel: SharedStatsViewModel
 
     private var layoutMap: HashMap<String, LinearLayout> = HashMap<String, LinearLayout>()
+
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_statspage, container, false)
+        return inflater.inflate(R.layout.fragment_statspage, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        sharedStatsViewModel = ViewModelProvider(requireActivity())[SharedStatsViewModel::class.java]
 
         statsGrid = view.findViewById(R.id.statsGrid)
         detailView = view.findViewById(R.id.detailView)
@@ -43,6 +54,11 @@ class StatspageFragment : Fragment() {
                 2 -> view.findViewById<Button>(attribute.button).setOnClickListener {
                     toggleFoundation(attribute.name)
                 }
+                3 -> view.findViewById<Button>(attribute.button).text =
+                    getString(attribute.string,
+                        sharedStatsViewModel.getLevelOf(attribute.name),
+                        sharedStatsViewModel.getExperienceOf(attribute.name)
+                    )
             }
         }
 
@@ -51,7 +67,22 @@ class StatspageFragment : Fragment() {
             showMainStats()
         }
 
-        return view
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        println("ONPAUSE AUFGERUFEN")
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        println("ONRESUME AUFGERUFEN")
+
+        sharedStatsViewModel.resumeInstance()
+
     }
 
     private fun showSubstats(statName: String) {
@@ -78,7 +109,6 @@ class StatspageFragment : Fragment() {
             layoutMap[statName]?.visibility = View.GONE
         }
     }
-
 
     private fun showMainStats() {
         detailView.visibility = View.GONE

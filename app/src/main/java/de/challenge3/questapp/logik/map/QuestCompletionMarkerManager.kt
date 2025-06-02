@@ -1,7 +1,11 @@
 package de.challenge3.questapp.logik.map
 
+import android.content.Context
 import android.graphics.PointF
+import androidx.core.content.ContextCompat
+import de.challenge3.questapp.R
 import de.challenge3.questapp.ui.home.QuestCompletion
+import de.challenge3.questapp.ui.home.QuestTag
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
@@ -9,17 +13,16 @@ import org.maplibre.android.plugins.annotation.Symbol
 import org.maplibre.android.plugins.annotation.SymbolManager
 import org.maplibre.android.plugins.annotation.SymbolOptions
 
-// manages map markers for completed quests
-// creates markers at locations, handles makrer click events, updates markers, shows quest popups on marker clicks
 class QuestCompletionMarkerManager(
     private val map: MapLibreMap,
     private val mapView: MapView,
     private val iconId: String,
     private val onQuestClick: (QuestCompletion, PointF) -> Unit
-) : QuestCompletionMarkerHandler, MarkerController {
+) : MarkerController {
 
     private var symbolManager: SymbolManager? = null
     private val questSymbolMap = mutableMapOf<Symbol, QuestCompletion>()
+    private val context: Context = mapView.context
 
     override fun initialize(style: Style) {
         cleanup()
@@ -30,28 +33,34 @@ class QuestCompletionMarkerManager(
         }
     }
 
-    override fun addQuestMarkers(quests: List<QuestCompletion>) {
-        updateMarkers(quests)
-    }
-
     override fun updateMarkers(quests: List<QuestCompletion>) {
         symbolManager?.deleteAll()
         questSymbolMap.clear()
-
-        quests.forEach { quest ->
-            createMarkerForQuest(quest)
-        }
+        quests.forEach(::createMarkerForQuest)
     }
 
     private fun createMarkerForQuest(quest: QuestCompletion) {
+        val textColor = getTagColorHex(quest.tag)
+
         val symbol = symbolManager?.create(
             SymbolOptions()
                 .withLatLng(quest.location)
                 .withIconImage(iconId)
                 .withIconSize(1.0f)
         )
-
         symbol?.let { questSymbolMap[it] = quest }
+    }
+
+    private fun getTagColorHex(tag: QuestTag): String {
+        val colorRes = when (tag) {
+            QuestTag.MIGHT -> R.color.tag_might
+            QuestTag.MIND -> R.color.tag_mind
+            QuestTag.HEART -> R.color.tag_heart
+            QuestTag.SPIRIT -> R.color.tag_spirit
+        }
+
+        val color = ContextCompat.getColor(context, colorRes)
+        return String.format("#%06X", 0xFFFFFF and color)
     }
 
     private fun handleMarkerClick(symbol: Symbol): Boolean {

@@ -22,7 +22,7 @@ jobs:
 
       - name: Decode keystore from secret
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > keystore.jks
+          echo "${{ secrets.NICHT_WICHTIG }}" | base64 --decode > keystore.jks
 
       - name: Grant permission to gradlew
         run: chmod +x ./gradlew

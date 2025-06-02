@@ -3,4 +3,4 @@
 gradlew dependencyCheckAnalyze
 
 
-Wir testen hier gerade die Releases
+testcommit

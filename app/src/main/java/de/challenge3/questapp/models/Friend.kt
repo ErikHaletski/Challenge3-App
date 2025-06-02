@@ -17,27 +17,25 @@ data class Friend(
         get() = username.ifEmpty { email.substringBefore("@") }
 
     val levelProgress: Float
-        get() {
-            val baseXpForLevel = level * 1000
-            val xpInCurrentLevel = totalExperience % 1000
-            return xpInCurrentLevel / 1000f
-        }
+        get() = (totalExperience % 1000) / 1000f
 
     val lastSeenFormatted: String
         get() = when {
             isOnline -> "Online"
-            lastSeen != null -> {
-                val timeDiff = System.currentTimeMillis() - lastSeen
-                when {
-                    timeDiff < 60000 -> "Just now"
-                    timeDiff < 3600000 -> "${timeDiff / 60000}m ago"
-                    timeDiff < 86400000 -> "${timeDiff / 3600000}h ago"
-                    timeDiff < 604800000 -> "${timeDiff / 86400000}d ago"
-                    else -> SimpleDateFormat("MMM dd", Locale.getDefault()).format(Date(lastSeen))
-                }
-            }
+            lastSeen != null -> formatTimeAgo(lastSeen)
             else -> "Offline"
         }
+
+    private fun formatTimeAgo(timestamp: Long): String {
+        val timeDiff = System.currentTimeMillis() - timestamp
+        return when {
+            timeDiff < 60000 -> "Just now"
+            timeDiff < 3600000 -> "${timeDiff / 60000}m ago"
+            timeDiff < 86400000 -> "${timeDiff / 3600000}h ago"
+            timeDiff < 604800000 -> "${timeDiff / 86400000}d ago"
+            else -> SimpleDateFormat("MMM dd", Locale.getDefault()).format(Date(timestamp))
+        }
+    }
 }
 
 data class FriendRequest(
@@ -49,16 +47,7 @@ data class FriendRequest(
     val fromUser: Friend? = null
 ) {
     val timeAgo: String
-        get() {
-            val timeDiff = System.currentTimeMillis() - timestamp
-            return when {
-                timeDiff < 60000 -> "Just now"
-                timeDiff < 3600000 -> "${timeDiff / 60000}m ago"
-                timeDiff < 86400000 -> "${timeDiff / 3600000}h ago"
-                timeDiff < 604800000 -> "${timeDiff / 86400000}d ago"
-                else -> SimpleDateFormat("MMM dd", Locale.getDefault()).format(Date(timestamp))
-            }
-        }
+        get() = Friend("", "", "", 0, 0, lastSeen = timestamp).lastSeenFormatted
 }
 
 enum class FriendshipStatus {

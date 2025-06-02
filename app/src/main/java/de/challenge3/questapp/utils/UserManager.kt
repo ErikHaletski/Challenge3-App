@@ -89,6 +89,10 @@ class UserManager(private val context: Context) {
                         .apply()
                     Log.d(TAG, "Marked existing user setup as complete: $username")
                 }
+
+                // Set user as online when app starts
+                setUserOnlineStatus(true)
+
                 return false // No setup needed
             }
         } catch (e: Exception) {
@@ -209,6 +213,40 @@ class UserManager(private val context: Context) {
             Log.e(TAG, "Error incrementing quest count", e)
             Result.failure(e)
         }
+    }
+
+    /**
+     * Sets the user's online status
+     */
+    suspend fun setUserOnlineStatus(isOnline: Boolean): Result<Unit> {
+        return try {
+            val userId = getCurrentUserId()
+            val updates = mutableMapOf<String, Any>(
+                "isOnline" to isOnline,
+                "lastSeen" to System.currentTimeMillis()
+            )
+
+            usersCollection.document(userId).update(updates).await()
+            Log.d(TAG, "Updated online status for user $userId: $isOnline")
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating online status", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Sets user as online
+     */
+    suspend fun setUserOnline(): Result<Unit> {
+        return setUserOnlineStatus(true)
+    }
+
+    /**
+     * Sets user as offline
+     */
+    suspend fun setUserOffline(): Result<Unit> {
+        return setUserOnlineStatus(false)
     }
 
     /**

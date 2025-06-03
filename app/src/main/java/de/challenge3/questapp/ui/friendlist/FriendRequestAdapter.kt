@@ -35,7 +35,6 @@ class FriendRequestsAdapter(
                     textViewUsername.text = fromUser.displayName
                     textViewLevel.text = "Level ${fromUser.level}"
 
-                    // Show current level XP, not total XP
                     textViewQuestCount.text = "${fromUser.currentLevelExperience} XP • ${fromUser.completedQuestsCount} quests"
                 } else {
                     textViewUsername.text = "Unknown User"

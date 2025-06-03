@@ -48,14 +48,22 @@ class StatspageFragment : Fragment() {
             layoutMap.put(attribute.name, view.findViewById(attribute.layout))
             //add proper function to button depending on attType
             when (attribute.attType) {
+                // 1: 4 Hauptkategorien (HEART, MIND, MIGHT, SPIRIT)
                 1 -> view.findViewById<Button>(attribute.button).setOnClickListener {
                     showSubstats(attribute.name)
                 }
-                2 -> view.findViewById<Button>(attribute.button).setOnClickListener {
+                // 2: Direkte unterkategorie mit Kindern
+                2 -> {view.findViewById<Button>(attribute.button).setOnClickListener {
                     toggleFoundation(attribute.name)
                 }
+                view.findViewById<Button>(attribute.button).text = getString(
+                    attribute.string,
+                    sharedStatsViewModel.getAvgLvlOf(attribute.name)
+                )}
+                // 3: Direkte unterkategorie ohne Kinder ODER unter-unterkategorie
                 3 -> view.findViewById<Button>(attribute.button).text =
-                    getString(attribute.string,
+                    getString(
+                        attribute.string,
                         sharedStatsViewModel.getLevelOf(attribute.name),
                         sharedStatsViewModel.getExperienceOf(attribute.name)
                     )
@@ -72,14 +80,11 @@ class StatspageFragment : Fragment() {
     override fun onPause() {
         super.onPause()
 
-        println("ONPAUSE AUFGERUFEN")
-
     }
 
+    // laden der gespeicherten Stat werte
     override fun onResume() {
         super.onResume()
-
-        println("ONRESUME AUFGERUFEN")
 
         sharedStatsViewModel.resumeInstance()
 

@@ -12,8 +12,11 @@ interface DailyQuestActiveDao {
     @Query("SELECT * FROM DailyQuestActiveEntity")
     fun getAll(): MutableList<DailyQuestActiveEntity>
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+
+    // replace onconflict damit wir quests ändern können
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(vararg dailyQuestActiveEntity: DailyQuestActiveEntity)
+
 
     @Delete
     fun dropAll(vararg dailyQuestActiveEntity: DailyQuestActiveEntity)

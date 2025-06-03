@@ -27,10 +27,17 @@ class QuestApp : Application(), DefaultLifecycleObserver {
         super<Application>.onCreate()
         FirebaseApp.initializeApp(this)
         MapLibre.getInstance(this)
-        QuestApp.database = Room.databaseBuilder(
-            this,
-            AppDatabase::class.java, "stats-db"
-        ).allowMainThreadQueries().fallbackToDestructiveMigration(false).build()
+
+        // Android Room Datenbank fürs lokale speichern
+        QuestApp.database =
+                Room.databaseBuilder(
+                this,
+                AppDatabase::class.java, "stats-db"
+            )
+            .allowMainThreadQueries()
+            .fallbackToDestructiveMigration(false)  // wenn die DB geändert werden, soll die DB destruktiv neuerstellt werden. Keine Migration findet statt.
+                                                    // false = tables werden nicht gedroppt, inhalt wird beibehalten.
+            .build()
 
         userManager = UserManager(this)
 

@@ -95,7 +95,7 @@
                         android:id="@+id/buttonStrength"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Strength" />
+                        android:text="@string/sp_strength" />
 
                     <LinearLayout
                         android:id="@+id/strengthFoundation"
@@ -114,17 +114,38 @@
 
                         <Button
                             android:id="@+id/buttonLegStrength"
-                            android:layout_width="match_parent"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:insetLeft="12dp"
-                            android:text="Leg Strength" />
+                            android:text="@string/sp_leg_strength" />
+
+                        <Button
+                            android:id="@+id/buttonChestStrength"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:insetLeft="12dp"
+                            android:text="@string/sp_chest_strength" />
+
+                        <Button
+                            android:id="@+id/buttonBackStrength"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:insetLeft="12dp"
+                            android:text="@string/sp_back_strength" />
+
+                        <Button
+                            android:id="@+id/buttonCoreStrength"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:insetLeft="12dp"
+                            android:text="@string/sp_core_strength" />
                     </LinearLayout>
 
                     <Button
                         android:id="@+id/buttonEndurance"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Endurance" />
+                        android:text="@string/sp_endurance" />
 
                     <LinearLayout
                         android:id="@+id/enduranceFoundation"

@@ -118,6 +118,7 @@ dependencies {
     androidTestImplementation (libs.androidx.junit)
     androidTestImplementation (libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.room.testing)
+    testImplementation(kotlin("test"))
 }
 
 configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {

@@ -3,9 +3,9 @@ package de.challenge3.questapp.logik.stats
 import de.challenge3.questapp.entities.StatEntity
 import kotlin.math.round
 
+
+// allgemeine Stats Klasse, gemanaged von SharedStatsViewModel
 class Stats {
-
-
     val name: String
     var experience: Int = 0
     var level: Int = 1
@@ -20,14 +20,16 @@ class Stats {
         reachedLvlUp()
     }
 
+    // überprüfen ob ein lvl up erreicht wird, nimmt die überschüßige xp ins nächste lvl
     private fun reachedLvlUp() {
-        if (experience > expCeiling) {
+        if (experience >= expCeiling) {
             level = level + 1
             experience = experience - expCeiling
             raiseExpCeiling()
         }
     }
 
+    // erhöhen der für ein lvl benötigte xp
     private fun raiseExpCeiling() {
         expCeiling = expCeiling + round(expCeiling * 0.1).toInt()
     }

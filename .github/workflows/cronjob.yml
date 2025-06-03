@@ -2,7 +2,7 @@ name: Format and Security Check
 
 on:
   schedule:
-    - cron: '0 8 * * 6'
+    - cron: '0 12 * * 2'
   workflow_dispatch:
 
 jobs:
@@ -17,9 +17,6 @@ jobs:
           sudo apt-get install -y dos2unix
           dos2unix ./gradlew
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x ./gradlew
-
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
@@ -27,7 +24,7 @@ jobs:
           java-version: '17'
 
       - name: Run Dependency Check
-        run: ./gradlew dependencyCheckAnalyze
+        run: ./gradlew dependencyCheckAnalyze -Pformats=HTML,JSON
 
       - name: Upload Dependency Check Report
         if: success()

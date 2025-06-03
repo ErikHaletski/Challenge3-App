@@ -40,7 +40,7 @@ class QuestCompletionMarkerManager(
     }
 
     private fun createMarkerForQuest(quest: QuestCompletion) {
-        val textColor = getTagColorHex(quest.tag)
+        getTagColorHex(quest.tag)
 
         val symbol = symbolManager?.create(
             SymbolOptions()

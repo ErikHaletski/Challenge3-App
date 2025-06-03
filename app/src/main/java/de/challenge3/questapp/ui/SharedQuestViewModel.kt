@@ -22,6 +22,8 @@ class SharedQuestViewModel : ViewModel() {
     val permQuestActiveDao = QuestApp.database?.permQuestActiveDao()
     val achievementsDao = QuestApp.database?.achievementsDao()
 
+
+    // initial vergewissern dass der questpool gefüllt ist
     init {
         if (permQuestPoolDao!!.getAll().isEmpty()) {
             resetPermQuestsPool()
@@ -35,6 +37,8 @@ class SharedQuestViewModel : ViewModel() {
         _questList.value = _questList.value
     }
 
+
+    // entfernen einer quest aus der list und dem entsprechendem akitvem pool
     fun removeQuest(tar: String, type: Quest.QuestType) {
         _questList.value = _questList.value?.filterNot { tar == it.id }
         if (type == Quest.QuestType.NORMAL) {
@@ -44,12 +48,18 @@ class SharedQuestViewModel : ViewModel() {
         }
     }
 
+
+    // hinzufügen von 3 zufälligen daily quests
     fun addActiveDailyQuests(count: Int) {
         var remainingDailies : MutableList<DailyQuestPoolEntity> = dailyQuestPoolDao!!.getAll()
+
+        // wenn weniger quests als benötigt ausgegeben würden wird der pool resettet und neue quests ausgesucht.
+        // Bedeutet auch: mit Pech könnten einige quests für längere Zeit nicht dran kommen. Unwahrscheinlich
         if (remainingDailies.size < count) {
             resetDailyQuestsPool()
             remainingDailies = dailyQuestPoolDao.getAll()
         }
+        // shuffle + aussuch der ersten i sorgt für zufällige auswahl der quests
         remainingDailies.shuffle()
         for (i in 0..< count) {
             dailyQuestPoolDao.dropAll(remainingDailies[i])
@@ -58,6 +68,8 @@ class SharedQuestViewModel : ViewModel() {
         updateActiveQuests()
     }
 
+
+    // refresh der Quest Pools
     fun resetPermQuestsPool() {
         for (permQuests in PermQuests.entries) {
             permQuestPoolDao!!.insertAll(PermQuestPoolEntity(permQuests.quest.id, permQuests.quest.statType, permQuests.reqLvl))
@@ -70,6 +82,8 @@ class SharedQuestViewModel : ViewModel() {
         }
     }
 
+
+    // hinzufügen von 3 zufälligen permanenten quests unter anbetracht der erfüllten korrespondierenden achievements
     fun addActivePermQuests(count: Int) {
         var remainingQuests = mutableListOf<PermQuestPoolEntity>()
         for (attribute in Attributes.entries) {
@@ -79,6 +93,8 @@ class SharedQuestViewModel : ViewModel() {
             }
         }
 
+        // wenn weniger quests als benötigt ausgegeben würden wird der pool resettet und neue quests ausgesucht.
+        // Bedeutet auch: mit Pech könnten einige quests für längere Zeit nicht dran kommen. Unwahrscheinlich
         if (remainingQuests.size < count) {
             resetPermQuestsPool()
             for (attribute in Attributes.entries) {
@@ -88,15 +104,17 @@ class SharedQuestViewModel : ViewModel() {
                 }
             }
         }
+        // shuffle + aussuch der ersten i sorgt für zufällige auswahl der quests
         remainingQuests.shuffle()
         for (i in 0..< count) {
-            println("0<=$i<$count")
             permQuestPoolDao!!.dropAll(remainingQuests[i])
             permQuestActiveDao!!.insertAll(PermQuestActiveEntity(remainingQuests[i].id))
         }
         updateActiveQuests()
     }
 
+
+    // update der questliste im View, garantieren der Sichtbarkeit im Screen
     fun updateActiveQuests() {
         var combinedQuests = mutableListOf<Quest>()
         for (dailyActive in dailyQuestActiveDao!!.getAll()) {
@@ -117,8 +135,4 @@ class SharedQuestViewModel : ViewModel() {
         }
         _questList.value = combinedQuests
     }
-
-//    fun addExperience(tar: String, exp: Int) {
-//        statsManager.addExperience(tar, exp)
-//    }
 }

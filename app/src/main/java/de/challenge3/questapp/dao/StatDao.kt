@@ -12,8 +12,11 @@ interface StatDao {
     @Query("SELECT * FROM StatEntity")
     fun getAll(): List<StatEntity>
 
+
+    // onconflict replace, da die stats IMMER in der tabelle bleiben. werden nie gelöscht, nur überschrieben
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(vararg statEntities: StatEntity)
+
 
     @Update
     fun updateStats(vararg statEntities: StatEntity)

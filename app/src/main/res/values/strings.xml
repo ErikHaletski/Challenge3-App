@@ -8,7 +8,24 @@
     <string name="center_map_on_location">Center map on my location</string>
 
     <!-- Statspage Strings -->
-    <string name="sp_arm_strength">Arm Strength \nLVL: %d || EXP: %d</string>
-    <string name="sp_leg_strength">Leg Strength \nLVL: %d || EXP: %d</string>
+    <string name="sp_might">Might</string>
+    <string name="sp_mind">Mind</string>
+    <string name="sp_heart">Heart</string>
+    <string name="sp_spirit">Spirit</string>
+
+    <string name="sp_strength">Strength \nLVL: %.2f</string>
     <string name="sp_endurance">Endurance \nLVL: %d || EXP: %d</string>
+    <string name="sp_intelligence">Intelligence</string>
+    <string name="sp_wisdom">Wisdom</string>
+    <string name="sp_compassion">Compassion</string>
+    <string name="sp_charisma">Charisma</string>
+    <string name="sp_willpower">Willpower</string>
+    <string name="sp_resilience">Resilience</string>
+
+    <string name="sp_arm_strength">  Arm Strength \nLVL: %d || EXP: %d</string>
+    <string name="sp_leg_strength">  Leg Strength \nLVL: %d || EXP: %d</string>
+    <string name="sp_chest_strength">Chest Strength\nLVL: %d || EXP: %d</string>
+    <string name="sp_back_strength"> Back Strength \nLVL: %d || EXP: %d</string>
+    <string name="sp_core_strength"> Core Strength \nLVL: %d || EXP: %d</string>
+
 </resources>

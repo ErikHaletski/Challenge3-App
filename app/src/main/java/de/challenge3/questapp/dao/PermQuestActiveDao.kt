@@ -12,8 +12,11 @@ interface PermQuestActiveDao {
     @Query("SELECT * FROM PermQuestActiveEntity")
     fun getAll(): MutableList<PermQuestActiveEntity>
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+
+    // replace onconflict damit wir quests ändern können
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(vararg permQuestActiveEntity: PermQuestActiveEntity)
+
 
     @Delete
     fun dropAll(vararg permQuestActiveEntity: PermQuestActiveEntity)

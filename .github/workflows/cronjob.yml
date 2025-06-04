@@ -2,7 +2,7 @@ name: Format and Security Check
 
 on:
   schedule:
-    - cron: '0 12 * * 2'
+    - cron: '0 14 * * 3'
   workflow_dispatch:
 
 jobs:

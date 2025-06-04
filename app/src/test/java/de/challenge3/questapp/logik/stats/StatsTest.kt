@@ -1,7 +1,7 @@
 package de.challenge3.questapp.logik.stats
 
+import junit.framework.TestCase.assertEquals
 import org.junit.Test
-import kotlin.test.assertEquals
 
 class StatsTest {
     @Test
